@@ -1,9 +1,14 @@
+import numpy as np
+from scipy import signal, interpolate
+import math
 
 class MultiBands:
 
     def __init__(self, base_frequency = 125, n_fft = 512):
         self.base_freq = base_frequency
         self.n_fft = n_fft
+
+        self.fs = 48000
 
         # compute the number of bands
         self.n_bands = math.floor(np.log2(self.fs / base_frequency))
