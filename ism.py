@@ -192,7 +192,7 @@ class ISM:
         self.velocity = velocity
         self.width = int(2 * np.round(time * fs) + 1)
         self.width_half = int(np.round(time * fs))
-        self.time_width = np.linspace(-192,192,385)
+        self.time_width = np.linspace(-self.width_half, self.width_half, self.width)
         self.cTs = velocity / fs
         self.hann_window = 0.5 * (1 + np.cos(np.linspace(-np.pi, np.pi, self.width)))
         self.nSamples = sample
@@ -307,8 +307,9 @@ class ISM:
                     dist = self.cluster[order][index]['dist']
                     beta = self.cluster[order][index]['beta']
                     startPosition = self.cluster[order][index]['start']
+                    endPosition = self.cluster[order][index]['end']
 
-                    if fdist_in_sample < self.nSamples:
+                    if endPosition < self.nSamples:
                         beta_sb = beta.T[b]
                         gain = beta_sb[0] * beta_sb[1] * beta_sb[2] * beta_sb[3] * beta_sb[4] * beta_sb[5] / (4 * np.pi * dist)
 
