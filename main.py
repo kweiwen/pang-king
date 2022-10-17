@@ -1,3 +1,5 @@
+import numpy as np
+
 from ism import *
 import matplotlib.pyplot as plt
 from material import *
@@ -39,9 +41,9 @@ from multibands import *
 # m["west"]    = Material(energy_absorption="plywood_thin", scattering="rect_prism_boxes")
 # m["north"]   = Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
 # m["south"]   = Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-#
+
 # instance = ISM()
-# instance.defineSystem(48000, 343, 2048, 0.01)
+# instance.defineSystem(48000, 343, 2048, 0.004)
 # instance.createMultiBands()
 # instance.createRoom(3.2, 4, 2.7)
 #
@@ -71,49 +73,38 @@ from multibands import *
 #
 # plt.plot(np.sum(taps[:,:], axis=1))
 # plt.show()
+#
+# np.savetxt('impedance.dat', [np.sum(taps[:,:], axis=1)], delimiter=',\n', fmt='%.24f')
+
 
 
 import pyroomacoustics as pra
 
-# The desired reverberation time and dimensions of the room
-rt60 = 0.01  # seconds
-room_dim = [9, 7.5, 3.5]  # meters
 
 m = pra.make_materials(
-    ceiling="hard_surface",
-    floor="brickwork",
-    east="brickwork",
-    west="brickwork",
-    north="brickwork",
-    south="brickwork",
+    ceiling="reverb_chamber",
+    floor="concrete_floor",
+    east="concrete_floor",
+    west="plywood_thin",
+    north="hard_surface",
+    south="hard_surface",
 )
 
 # Create the room
 room = pra.ShoeBox(
-    room_dim, fs=48000, materials=m, max_order=17, air_absorption=True, ray_tracing=True
-)
-
-# create directivity object
-from pyroomacoustics.directivities import (
-    DirectivityPattern,
-    DirectionVector,
-    CardioidFamily,
-)
-dir_obj = CardioidFamily(
-    orientation=DirectionVector(azimuth=90, colatitude=15, degrees=True),
-    pattern_enum=DirectivityPattern.HYPERCARDIOID,
+    [3.2, 4, 2.7], fs=48000, materials=m, max_order=3, air_absorption=False, ray_tracing=False
 )
 
 # place the source in the room
-room.add_source(position=[2.5, 3.73, 1.76])
+room.add_source(position=[2, 3, 2])
 
 # place the microphone in the room
-room.add_microphone(loc=[2.5, 5, 1.76])
+room.add_microphone(loc=[2.2, 1, 1.2])
 
 room.compute_rir()
 
-# plot the RIR between mic 1 and source 0
-import matplotlib.pyplot as plt
-
-plt.plot(room.rir[0][0])
+taps = np.append(room.rir[0][0], np.zeros(2048 - len(room.rir[0][0])))
+np.savetxt('impedance.dat', [taps], delimiter=',\n', fmt='%.24f')
+plt.plot(taps)
 plt.show()
+
