@@ -1,38 +1,7 @@
-import numpy as np
-
 from ism import *
 import matplotlib.pyplot as plt
 from material import *
 from multibands import *
-
-
-
-# object = MultiBands()
-#
-# w, h = signal.freqz(object.filters.T[0])
-# amplitude = np.abs(h)
-# angle = np.unwrap(np.angle(h))
-#
-# fig, ax1 = plt.subplots()
-# ax2 = ax1.twinx()
-#
-# plt.title('frequency response of RIR')
-# plt.xlabel(r'normalized frequency (x$\pi$rad/sample)')
-#
-# ax1.plot(w/max(w), amplitude, 'g')
-# ax1.set_ylabel('amplitude (dB)', color='g')
-# # ax1.set_ylim(-120, 6)
-# ax1.grid()
-#
-# ax2.plot(w/max(w), angle, 'b--')
-# ax2.set_ylabel('phase (radians)', color='b')
-#
-# plt.xscale("log")
-# plt.show()
-#
-# plt.plot(object.filters)
-# plt.show()
-
 
 m = dict()
 m["ceiling"] = Material(energy_absorption="reverb_chamber", scattering="rect_prism_boxes")
