@@ -215,7 +215,22 @@ class ISM:
         self.source = np.array([x, y, z])
         self.s = np.array([x, y, z]) / self.cTs
 
-    def createMaterialByCoefficient(self, x1, x2, y1, y2, z1, z2):
+    def createMaterialByCoefficient(self, x1, x2, y1, y2, z1, z2, is_vanilla):
+        if is_vanilla:
+            x1 = np.sqrt(1 - x1)
+            x2 = np.sqrt(1 - x2)
+            y1 = np.sqrt(1 - y1)
+            y2 = np.sqrt(1 - y2)
+            z1 = np.sqrt(1 - z1)
+            z2 = np.sqrt(1 - z2)
+        else:
+            x1 = np.sqrt(1 - x1) * -1
+            x2 = np.sqrt(1 - x2) * -1
+            y1 = np.sqrt(1 - y1) * -1
+            y2 = np.sqrt(1 - y2) * -1
+            z1 = np.sqrt(1 - z1) * -1
+            z2 = np.sqrt(1 - z2) * -1
+
         # define reflection coefficient
         self.beta = np.array([x1, x2, y1, y2, z1, z2])
 

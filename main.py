@@ -23,14 +23,7 @@ y2 = instance.resample(m['north'].energy_absorption['coeffs'], m['north'].energy
 z1 = instance.resample(m['floor'].energy_absorption['coeffs'], m['floor'].energy_absorption['center_freqs'])
 z2 = instance.resample(m['ceiling'].energy_absorption['coeffs'], m['ceiling'].energy_absorption['center_freqs'])
 
-x1 = np.sqrt(1 - x1) * 1
-x2 = np.sqrt(1 - x2) * 1
-y1 = np.sqrt(1 - y1) * 1
-y2 = np.sqrt(1 - y2) * 1
-z1 = np.sqrt(1 - z1) * 1
-z2 = np.sqrt(1 - z2) * 1
-
-instance.createMaterialByCoefficient(x1, x2, y1, y2, z1, z2)
+instance.createMaterialByCoefficient(x1, x2, y1, y2, z1, z2, True)
 instance.addMicrophone(2.2, 1, 1.2)
 instance.addSource(2, 3, 2)
 instance.computeISM()
@@ -40,8 +33,6 @@ taps = instance.computeRIR()
 plt.plot(taps[:,0:4])
 plt.show()
 
-
-# taps[:,0:3]
 plt.plot(np.sum(taps[:,0:4], axis=1))
 plt.show()
 
