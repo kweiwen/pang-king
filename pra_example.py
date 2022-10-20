@@ -6,20 +6,20 @@ from scipy.io.wavfile import write, read
 
 m = pra.make_materials(
     ceiling="reverb_chamber",
-    floor="reverb_chamber",
-    east="reverb_chamber",
-    west="reverb_chamber",
-    north="reverb_chamber",
-    south="reverb_chamber",
+    floor="concrete_floor",
+    east="concrete_floor",
+    west="plywood_thin",
+    north="hard_surface",
+    south="hard_surface",
 )
 
 # Create the room
 room = pra.ShoeBox(
-    [3.2, 4, 2.7], fs=48000, materials=m, max_order=3, air_absorption=True, ray_tracing=False
+    [3.2, 4, 2.7], fs=48000, materials=m, max_order=3, air_absorption=False, ray_tracing=False
 )
 
 # place the source in the room
-room.add_source(position=[1, 1, 1])
+room.add_source(position=[2, 3, 2])
 
 # place the microphone in the room
 room.add_microphone(loc=[2.2, 1, 1.2])
