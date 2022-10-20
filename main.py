@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 from material import *
 from multibands import *
 
+instance = ISM()
+instance.defineSystem(48000, 343, 2048, 0.004)
+instance.createMultiBands()
+instance.createRoom(3.2, 4, 2.7)
+
 m = dict()
 m["ceiling"] = Material(energy_absorption="reverb_chamber", scattering="rect_prism_boxes")
 m["floor"]   = Material(energy_absorption="concrete_floor", scattering="rect_prism_boxes")
@@ -10,11 +15,6 @@ m["east"]    = Material(energy_absorption="concrete_floor", scattering="rect_pri
 m["west"]    = Material(energy_absorption="plywood_thin", scattering="rect_prism_boxes")
 m["north"]   = Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
 m["south"]   = Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-
-instance = ISM()
-instance.defineSystem(48000, 343, 2048, 0.004)
-instance.createMultiBands()
-instance.createRoom(3.2, 4, 2.7)
 
 x1 = instance.resample(m['west'].energy_absorption['coeffs'], m['west'].energy_absorption['center_freqs'])
 x2 = instance.resample(m['east'].energy_absorption['coeffs'], m['east'].energy_absorption['center_freqs'])
