@@ -3,7 +3,6 @@ import numpy as np
 import math
 from scipy import signal, interpolate
 
-
 class ISM:
 
     def __init__(self):
@@ -347,8 +346,10 @@ class ISM:
         # dy = 8
         # dz = 5
         import matplotlib.pyplot as plt
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1, projection='3d')
+        import mpl_toolkits.mplot3d as a3
+
+        fig = plt.figure(figsize=None)
+        ax = a3.Axes3D(fig)
         xx = np.linspace(x, x + dx, space)
         yy = np.linspace(y, y + dy, space)
         zz = np.linspace(z, z + dz, space)
@@ -368,13 +369,13 @@ class ISM:
         ax.plot_surface(np.full((XX.shape), x), YY.T, ZZ, alpha=alpha)
         ax.set(xlabel='X', ylabel='Y', zlabel='Z')
 
-        # cluster_size = len(self.cluster)
-        # for order in range(4):
-        #     for index, block in enumerate(self.cluster[order]):
-        #         print(self.cluster[order][index]['image_source'])
-        #         x = self.cluster[order][index]['image_source'][0]
-        #         y = self.cluster[order][index]['image_source'][1]
-        #         z = self.cluster[order][index]['image_source'][2]
-        #         ax.scatter(x, y, z, c=cmap(val), s=20, marker='o', edgecolor=cmap(val),)
+        cluster_size = len(self.cluster)
+        for order in range(5):
+            for index, block in enumerate(self.cluster[order]):
+                # print(self.cluster[order][index]['image_source'])
+                ax.scatter(self.cluster[order][index]['image_source'][0],
+                           self.cluster[order][index]['image_source'][1],
+                           self.cluster[order][index]['image_source'][2])
+                # ax.scatter(x, y, z, c=cmap(val), s=20, marker='o', edgecolor=cmap(val),)
 
         plt.show()
