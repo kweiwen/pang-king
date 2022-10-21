@@ -2,6 +2,8 @@ from collections import defaultdict
 import numpy as np
 import math
 from scipy import signal, interpolate
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d as a3
 
 class ISM:
 
@@ -345,8 +347,6 @@ class ISM:
         # dx = 4
         # dy = 8
         # dz = 5
-        import matplotlib.pyplot as plt
-        import mpl_toolkits.mplot3d as a3
 
         fig = plt.figure(figsize=None)
         ax = a3.Axes3D(fig)
@@ -369,13 +369,11 @@ class ISM:
         ax.plot_surface(np.full((XX.shape), x), YY.T, ZZ, alpha=alpha)
         ax.set(xlabel='X', ylabel='Y', zlabel='Z')
 
-        cluster_size = len(self.cluster)
-        for order in range(5):
-            for index, block in enumerate(self.cluster[order]):
-                # print(self.cluster[order][index]['image_source'])
-                ax.scatter(self.cluster[order][index]['image_source'][0],
-                           self.cluster[order][index]['image_source'][1],
-                           self.cluster[order][index]['image_source'][2])
-                # ax.scatter(x, y, z, c=cmap(val), s=20, marker='o', edgecolor=cmap(val),)
+        # cluster_size = len(self.cluster)
+        # for order in range(5):
+        #     for index, block in enumerate(self.cluster[order]):
+        #         ax.scatter(self.cluster[order][index]['image_source'][0],
+        #                    self.cluster[order][index]['image_source'][1],
+        #                    self.cluster[order][index]['image_source'][2])
 
         plt.show()
