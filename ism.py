@@ -336,3 +336,34 @@ class ISM:
                             if startPosition + n >= 0 and startPosition + n < self.nSamples:
                                 imp[startPosition + n][order] = imp[startPosition + n][order] + sub_band[n]
         return imp
+
+    def render_room(self, space=2, alpha=0.2, x=0, y=0, z=0, dx=4, dy=8, dz=5):
+        # space = 2
+        # alpha = 0.2
+        # x = 0
+        # y = 0
+        # z = 0
+        # dx = 4
+        # dy = 8
+        # dz = 5
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+        xx = np.linspace(x, x + dx, space)
+        yy = np.linspace(y, y + dy, space)
+        zz = np.linspace(z, z + dz, space)
+
+        XX = np.full((space, space), xx)
+        YY = np.full((space, space), yy)
+        ZZ = np.full((space, space), zz)
+
+        ax.scatter(0.2, 4, 0.5, marker='o')
+        ax.scatter(2.8, 4, 0.5, marker='^')
+        ax.plot_surface(XX, YY.T, np.full((ZZ.shape), dz), alpha=alpha)
+        ax.plot_surface(XX, YY.T, np.full((ZZ.shape), z), alpha=alpha)
+        ax.plot_surface(XX.T, np.full((YY.shape), dy), ZZ, alpha=alpha)
+        ax.plot_surface(XX.T, np.full((YY.shape), y), ZZ, alpha=alpha)
+        ax.plot_surface(np.full((XX.shape), dx), YY.T, ZZ, alpha=alpha)
+        ax.plot_surface(np.full((XX.shape), x), YY.T, ZZ, alpha=alpha)
+        ax.set(xlabel='X', ylabel='Y', zlabel='Z')
+        plt.show()
