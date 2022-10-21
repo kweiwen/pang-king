@@ -199,22 +199,22 @@ class ISM:
         self.nSamples = sample
         self.cluster = defaultdict(list)
 
-    def createRoom(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+    def createRoom(self, xyz):
+        self.x = xyz[0]
+        self.y = xyz[1]
+        self.z = xyz[2]
         self.volume = self.x * self.y * self.z
         self.surface = 2 * (self.x * self.y + self.x * self.z + self.y * self.z)
-        self.dimension = np.array([x, y, z])
-        self.l = np.array([x, y, z]) / self.cTs
+        self.dimension = np.array([self.x, self.y, self.z])
+        self.l = np.array([self.x, self.y, self.z]) / self.cTs
 
-    def addMicrophone(self, x, y, z):
-        self.mircophone = np.array([x, y, z])
-        self.r = np.array([x, y, z]) / self.cTs
+    def addMicrophone(self, xyz):
+        self.mircophone = np.array([xyz[0], xyz[1], xyz[2]])
+        self.r = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
-    def addSource(self, x, y, z):
-        self.source = np.array([x, y, z])
-        self.s = np.array([x, y, z]) / self.cTs
+    def addSource(self, xyz):
+        self.source = np.array([xyz[0], xyz[1], xyz[2]])
+        self.s = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
     def createMaterialByCoefficient(self, x1, x2, y1, y2, z1, z2, is_vanilla):
         if is_vanilla:
@@ -338,7 +338,7 @@ class ISM:
                                 imp[startPosition + n][order] = imp[startPosition + n][order] + sub_band[n]
         return imp
 
-    def render_room(self, space=2, alpha=0.2, x=0, y=0, z=0, dx=4, dy=8, dz=5):
+    def render_room(self, space, alpha, x, y, z, dx, dy, dz, source, mic):
         # space = 2
         # alpha = 0.2
         # x = 0
@@ -359,8 +359,8 @@ class ISM:
         ZZ = np.full((space, space), zz)
 
 
-        ax.scatter(0.2, 4, 0.5, marker='o')
-        ax.scatter(2.8, 4, 0.5, marker='^')
+        ax.scatter(source[0], source[1], source[2], marker='o')
+        ax.scatter(mic[0], mic[1], mic[2], marker='^')
         ax.plot_surface(XX, YY.T, np.full((ZZ.shape), dz), alpha=alpha)
         ax.plot_surface(XX, YY.T, np.full((ZZ.shape), z), alpha=alpha)
         ax.plot_surface(XX.T, np.full((YY.shape), dy), ZZ, alpha=alpha)
