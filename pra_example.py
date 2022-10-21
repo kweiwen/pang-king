@@ -15,20 +15,24 @@ m = pra.make_materials(
 
 # Create the room
 room = pra.ShoeBox(
-    [4, 8, 4], fs=48000, materials=m, max_order=5, air_absorption=False, ray_tracing=False
+    [4, 8, 5], fs=48000, materials=m, max_order=3, air_absorption=True, ray_tracing=False
 )
 
 # place the source in the room
-room.add_source(position=[1.2, 4, 0.5])
+room.add_source(position=[0.2, 4, 0.5])
 
 # place the microphone in the room
-room.add_microphone(loc=[3.8, 4, 0.5])
+room.add_microphone(loc=[2.8, 4, 0.5])
 
 # plot room geometry
 room.compute_rir()
 
 room.plot()
 plt.show()
+
+
+
+
 
 # taps = np.append(room.rir[0][0], np.zeros(2048 - len(room.rir[0][0])))
 # np.savetxt('impedance_1.dat', taps, delimiter=',\n', fmt='%.24f')

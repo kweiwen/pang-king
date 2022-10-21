@@ -357,6 +357,7 @@ class ISM:
         YY = np.full((space, space), yy)
         ZZ = np.full((space, space), zz)
 
+
         ax.scatter(0.2, 4, 0.5, marker='o')
         ax.scatter(2.8, 4, 0.5, marker='^')
         ax.plot_surface(XX, YY.T, np.full((ZZ.shape), dz), alpha=alpha)
@@ -366,4 +367,14 @@ class ISM:
         ax.plot_surface(np.full((XX.shape), dx), YY.T, ZZ, alpha=alpha)
         ax.plot_surface(np.full((XX.shape), x), YY.T, ZZ, alpha=alpha)
         ax.set(xlabel='X', ylabel='Y', zlabel='Z')
+
+        # cluster_size = len(self.cluster)
+        # for order in range(4):
+        #     for index, block in enumerate(self.cluster[order]):
+        #         print(self.cluster[order][index]['image_source'])
+        #         x = self.cluster[order][index]['image_source'][0]
+        #         y = self.cluster[order][index]['image_source'][1]
+        #         z = self.cluster[order][index]['image_source'][2]
+        #         ax.scatter(x, y, z, c=cmap(val), s=20, marker='o', edgecolor=cmap(val),)
+
         plt.show()
