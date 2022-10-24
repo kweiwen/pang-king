@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 from material import *
 from multibands import *
 
-def example():
+def example(is_save):
     room_size = [5, 3, 2.2]
     microphone_pos = [4, 1.5, 0.2]
     source_pos = [1, 1.5, 0.2]
 
     instance = ISM()
-    instance.defineSystem(48000, 343, 2048-480, 0.004)
+    instance.defineSystem(48000, 343, 4096-512, 0.004)
     instance.createMultiBands()
     instance.createRoom(room_size)
 
@@ -18,10 +18,10 @@ def example():
     # reverb_chamber
 
     m = dict()
-    m["ceiling"] =  Material(energy_absorption="reverb_chamber", scattering="rect_prism_boxes")
-    m["floor"] =    Material(energy_absorption="concrete_floor", scattering="rect_prism_boxes")
-    m["east"] =     Material(energy_absorption="concrete_floor", scattering="rect_prism_boxes")
-    m["west"] =     Material(energy_absorption="plywood_thin", scattering="rect_prism_boxes")
+    m["ceiling"] =  Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["floor"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["east"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["west"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
     m["north"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
     m["south"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
 
@@ -32,22 +32,29 @@ def example():
     z1 = instance.resample(m['floor'].energy_absorption['coeffs'], m['floor'].energy_absorption['center_freqs'])
     z2 = instance.resample(m['ceiling'].energy_absorption['coeffs'], m['ceiling'].energy_absorption['center_freqs'])
 
-    instance.createMaterialByCoefficient(x1, x2, y1, y2, z1, z2, True)
+    instance.createMaterialByCoefficient(x1, x2, y1, y2, z1, z2, False)
     instance.addMicrophone(microphone_pos)
     instance.addSource(source_pos)
     instance.computeISM()
 
-    taps = instance.computeRIR()
+    tap_vector = instance.computeRIR() * 20
+    tap = np.sum(tap_vector[:, :], axis=1)
+    w, h = signal.freqz(tap)
 
     plt.subplot(2, 1, 1)
-    plt.plot(taps[:,:])
+    plt.plot(tap_vector[:,:])
     plt.subplot(2, 1, 2)
-    plt.plot(np.sum(taps[:, :], axis=1))
+    plt.plot(tap)
+    plt.show()
+
+    plt.plot(w, 20 * np.log10(abs(h)))
+    # plt.plot(w, np.unwrap(np.angle(h)))
     plt.show()
 
     instance.render_room(space=2, alpha=0.2, x=0, y=0, z=0, dx=room_size[0], dy=room_size[1], dz=room_size[2], source=source_pos, mic=microphone_pos)
 
-    # np.savetxt('impedance_1.dat', [np.sum(taps[:, :], axis=1)], delimiter=',\n', fmt='%.24f')
+    if is_save:
+        np.savetxt('impedance_2.dat', [tap], delimiter=',\n', fmt='%.24f')
 
 if __name__ == "__main__":
-    example()
+    example(True)
