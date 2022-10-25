@@ -37,24 +37,26 @@ def example(is_save):
     instance.addSource(source_pos)
     instance.computeISM()
 
-    tap_vector = instance.computeRIR() * 20
+    tap_vector = instance.computeRIR()
     tap = np.sum(tap_vector[:, :], axis=1)
-    w, h = signal.freqz(tap)
+    tap_norm = tap / np.max(tap)
 
-    plt.subplot(2, 1, 1)
+    w, h = signal.freqz(tap_norm)
+
+    plt.subplot(4, 1, 1)
     plt.plot(tap_vector[:,:])
-    plt.subplot(2, 1, 2)
-    plt.plot(tap)
-    plt.show()
-
+    plt.subplot(4, 1, 2)
+    plt.plot(tap_norm)
+    plt.subplot(4, 1, 3)
     plt.plot(w, 20 * np.log10(abs(h)))
-    # plt.plot(w, np.unwrap(np.angle(h)))
+    plt.subplot(4, 1, 4)
+    plt.plot(w, np.unwrap(np.angle(h)))
     plt.show()
 
     instance.render_room(space=2, alpha=0.2, x=0, y=0, z=0, dx=room_size[0], dy=room_size[1], dz=room_size[2], source=source_pos, mic=microphone_pos)
 
     if is_save:
-        np.savetxt('impedance_2.dat', [tap], delimiter=',\n', fmt='%.24f')
+        np.savetxt('impedance_2.dat', [tap_norm], delimiter=',\n', fmt='%.24f')
 
 if __name__ == "__main__":
     example(True)
