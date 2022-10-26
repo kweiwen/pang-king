@@ -18,12 +18,12 @@ def example(is_save):
     # reverb_chamber
 
     m = dict()
-    m["ceiling"] =  Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["floor"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["east"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["west"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["north"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["south"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["ceiling"] =  Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["floor"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["east"] =     Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["west"] =     Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["north"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["south"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
 
     x1 = instance.resample(m['west'].energy_absorption['coeffs'], m['west'].energy_absorption['center_freqs'])
     x2 = instance.resample(m['east'].energy_absorption['coeffs'], m['east'].energy_absorption['center_freqs'])
@@ -39,24 +39,28 @@ def example(is_save):
 
     tap_vector = instance.computeRIR()
     tap = np.sum(tap_vector[:, :], axis=1)
-    tap_norm = tap / np.max(tap)
+    # tap_norm = tap / np.max(tap)
 
-    w, h = signal.freqz(tap_norm)
+    w, h = signal.freqz(tap)
+    scale = len(h) / np.sum(np.abs(h))
+    h = h * scale
+    print(np.sum(abs(h)))
 
     plt.subplot(4, 1, 1)
     plt.plot(tap_vector[:,:])
     plt.subplot(4, 1, 2)
-    plt.plot(tap_norm)
+    plt.plot(tap)
     plt.subplot(4, 1, 3)
     plt.plot(w, 20 * np.log10(abs(h)))
     plt.subplot(4, 1, 4)
     plt.plot(w, np.unwrap(np.angle(h)))
     plt.show()
 
+
     instance.render_room(space=2, alpha=0.2, x=0, y=0, z=0, dx=room_size[0], dy=room_size[1], dz=room_size[2], source=source_pos, mic=microphone_pos)
 
     if is_save:
-        np.savetxt('impedance_2.dat', [tap_norm], delimiter=',\n', fmt='%.24f')
+        np.savetxt('impedance_1.dat', [tap*scale], delimiter=',\n', fmt='%.24f')
 
 if __name__ == "__main__":
     example(True)
