@@ -39,8 +39,8 @@ def example(is_save):
 
     tap_vector = instance.computeRIR()
     tap = np.sum(tap_vector[:, :], axis=1)
-    # tap_norm = tap / np.max(tap)
 
+    # compensate the energy
     w, h = signal.freqz(tap)
     scale = len(h) / np.sum(np.abs(h))
     h = h * scale
