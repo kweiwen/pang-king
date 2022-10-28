@@ -62,5 +62,30 @@ def example(is_save):
     if is_save:
         np.savetxt('impedance_1.dat', [tap*scale], delimiter=',\n', fmt='%.24f')
 
+
+def decodePlotRIR():
+    f1 = open("impedance_1.dat", "r")
+    arr1 = f1.readlines()
+
+    for index, data in enumerate(arr1):
+        data = float(data.replace(",", ""))
+        arr1[index] = data
+
+    f2 = open("impedance_2.dat", "r")
+    arr2 = f2.readlines()
+
+    for index, data in enumerate(arr2):
+        data = float(data.replace(",", ""))
+        arr2[index] = data
+
+
+    plt.plot(arr1)
+    plt.show()
+    plt.plot(arr2)
+    plt.show()
+
+
 if __name__ == "__main__":
     example(True)
+
+
