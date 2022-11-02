@@ -26,16 +26,16 @@ except ImportError as err:
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Basic room from STL file example")
-    parser.add_argument("file", type=str, help="Path to STL file")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="Basic room from STL file example")
+    # parser.add_argument("file", type=str, help="Path to STL file")
+    # args = parser.parse_args()
 
-    path_to_musis_stl_file = "./data/raw/MUSIS_3D_no_mics_simple.stl"
+    path_to_musis_stl_file = "data/INRIA_MUSIS.stl"
 
     material = pra.Material(energy_absorption=0.2, scattering=0.1)
 
     # with numpy-stl
-    the_mesh = mesh.Mesh.from_file(args.file)
+    the_mesh = mesh.Mesh.from_file(path_to_musis_stl_file)
     ntriang, nvec, npts = the_mesh.vectors.shape
     size_reduc_factor = 500.0  # to get a realistic room size (not 3km)
 
