@@ -189,14 +189,23 @@ class ISM:
             return output
 
     def defineSystem(self, fs, velocity, sample, time = 0.004):
+        # sample rate
         self.fs = fs
+        # air velocity
         self.velocity = velocity
+        # dirac function width, odd sample
         self.width = int(2 * np.round(time * fs) + 1)
+        # half of dirac function width, even sample
         self.width_half = int(np.round(time * fs))
+        # time space with 1 increasement
         self.time_width = np.linspace(-self.width_half, self.width_half, self.width)
+        # distance per sample
         self.cTs = velocity / fs
+        # window function
         self.hann_window = 0.5 * (1 + np.cos(np.linspace(-np.pi, np.pi, self.width)))
+        # total sample
         self.nSamples = sample
+        # cluster to store each reflection by order
         self.cluster = defaultdict(list)
 
     def createRoom(self, xyz):
