@@ -263,6 +263,8 @@ class ISM:
             return self.beta
 
     def computeISM(self):
+        direct_sound = np.sqrt(np.sum((self.source - self.mircophone) ** 2))
+
         n1 = int(np.ceil(self.nSamples / (2 * self.l[0])))
         n2 = int(np.ceil(self.nSamples / (2 * self.l[1])))
         n3 = int(np.ceil(self.nSamples / (2 * self.l[2])))
