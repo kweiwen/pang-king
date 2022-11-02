@@ -5,7 +5,7 @@ from multibands import *
 
 def example(is_save):
     room_size = [5, 3, 2.2]
-    microphone_pos = [4, 1.5, 0.2]
+    microphone_pos = [4, 1.25, 1.2]
     source_pos = [1, 1.5, 0.2]
 
     instance = ISM()
@@ -36,31 +36,27 @@ def example(is_save):
     instance.addMicrophone(microphone_pos)
     instance.addSource(source_pos)
     instance.computeISM()
-
-    tap_vector = instance.computeRIR()
-    tap = np.sum(tap_vector[:, :], axis=1)
+    instance.computeRIR()
 
     # compensate the energy
-    w, h = signal.freqz(tap)
+    w, h = signal.freqz(instance.tap)
     scale = len(h) / np.sum(np.abs(h))
     h = h * scale
-    print(np.sum(abs(h)))
 
     plt.subplot(4, 1, 1)
-    plt.plot(tap_vector[:,:])
+    plt.plot(instance.tap)
     plt.subplot(4, 1, 2)
-    plt.plot(tap)
+    plt.plot(instance.removeDirectSound())
     plt.subplot(4, 1, 3)
     plt.plot(w, 20 * np.log10(abs(h)))
     plt.subplot(4, 1, 4)
     plt.plot(w, np.unwrap(np.angle(h)))
     plt.show()
 
-
     instance.render_room(space=2, alpha=0.2, x=0, y=0, z=0, dx=room_size[0], dy=room_size[1], dz=room_size[2], source=source_pos, mic=microphone_pos)
 
     if is_save:
-        np.savetxt('impedance_1.dat', [tap*scale], delimiter=',\n', fmt='%.24f')
+        np.savetxt('impedance_1.dat', [instance.tap*scale], delimiter=',\n', fmt='%.24f')
 
 
 def decodePlotRIR():
