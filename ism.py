@@ -8,7 +8,7 @@ import mpl_toolkits.mplot3d as a3
 class ISM:
 
     def __init__(self):
-        pass
+        self.taps = None
 
     def createMultiBands(self, base_frequency = 125, n_fft = 512):
         self.base_freq = base_frequency
@@ -218,11 +218,15 @@ class ISM:
         self.l = np.array([self.x, self.y, self.z]) / self.cTs
 
     def addMicrophone(self, xyz):
+        # position in meter
         self.mircophone = np.array([xyz[0], xyz[1], xyz[2]])
+        # position in sample
         self.r = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
     def addSource(self, xyz):
+        # position in meter
         self.source = np.array([xyz[0], xyz[1], xyz[2]])
+        # position in sample
         self.s = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
     def createMaterialByCoefficient(self, x1, x2, y1, y2, z1, z2, is_vanilla):
@@ -263,8 +267,6 @@ class ISM:
             return self.beta
 
     def computeISM(self):
-        direct_sound = np.sqrt(np.sum((self.source - self.mircophone) ** 2))
-
         n1 = int(np.ceil(self.nSamples / (2 * self.l[0])))
         n2 = int(np.ceil(self.nSamples / (2 * self.l[1])))
         n3 = int(np.ceil(self.nSamples / (2 * self.l[2])))
@@ -347,7 +349,23 @@ class ISM:
                         for n in range(self.width):
                             if startPosition + n >= 0 and startPosition + n < self.nSamples:
                                 imp[startPosition + n][order] = imp[startPosition + n][order] + sub_band[n]
-        return imp
+        self.taps = imp
+        self.tap = np.sum(self.taps[:, :], axis=1)
+
+    def removeDirectSound(self):
+        # direct sound in distance
+        ds_dist = np.sqrt(np.sum((self.source - self.mircophone) ** 2))
+
+        # direct sound in sample
+        self.ds = ds_dist / self.cTs
+
+        ds_start = math.ceil(self.ds - self.width_half)
+        ds_end = math.floor(self.ds + self.width_half)
+
+        if ds_start > 0:
+            return self.tap[ds_start - 1:]
+        else:
+            return self.tap
 
     def render_room(self, space, alpha, x, y, z, dx, dy, dz, source, mic):
         # space = 2
