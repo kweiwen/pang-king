@@ -367,6 +367,11 @@ class ISM:
         else:
             return self.tap
 
+    def computeEngeryScale(self):
+        # compensate the energy
+        w, h = signal.freqz(self.tap)
+        return len(h) / np.sum(np.abs(h))
+
     def render_room(self, space, alpha, x, y, z, dx, dy, dz, source, mic):
         # space = 2
         # alpha = 0.2
