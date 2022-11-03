@@ -4,12 +4,12 @@ from material import *
 from multibands import *
 
 def example():
-    room_size = [5, 3, 2.2]
-    microphone_pos = [4, 1.25, 1.2]
-    source_pos = [1, 1.5, 0.2]
+    room_size = [8, 3, 2.8]
+    microphone_pos = [7, 1.5, 1.55]
+    source_pos = [1.2, 1.5, 1.2]
 
     instance = ISM()
-    instance.defineSystem(48000, 343, 4096-512, 0.004)
+    instance.defineSystem(48000, 343, 4096-512, 0.008)
     instance.createMultiBands()
     instance.createRoom(room_size)
 
@@ -18,12 +18,12 @@ def example():
     # reverb_chamber
 
     m = dict()
+    m["floor"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
     m["ceiling"] =  Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
-    m["floor"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["east"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["west"] =     Material(energy_absorption="reverb_chamber", scattering="rect_prism_boxes")
-    m["north"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["south"] =    Material(energy_absorption="reverb_chamber", scattering="rect_prism_boxes")
+    m["east"] =     Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["west"] =     Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["north"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["south"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
 
     x1 = instance.resample(m['west'].energy_absorption['coeffs'], m['west'].energy_absorption['center_freqs'])
     x2 = instance.resample(m['east'].energy_absorption['coeffs'], m['east'].energy_absorption['center_freqs'])
