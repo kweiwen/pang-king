@@ -9,7 +9,7 @@ def example():
     source_pos = [1.2, 1.5, 1.2]
 
     instance = ISM()
-    instance.defineSystem(48000, 343, 4096-512, 0.008)
+    instance.defineSystem(48000, 343, 4096-256, 0.008)
     instance.createMultiBands()
     instance.createRoom(room_size)
 
@@ -18,12 +18,12 @@ def example():
     # reverb_chamber
 
     m = dict()
-    m["floor"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
-    m["ceiling"] =  Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
-    m["east"] =     Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
-    m["west"] =     Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
-    m["north"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
-    m["south"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["floor"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["ceiling"] =  Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["east"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["west"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["north"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["south"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
 
     x1 = instance.resample(m['west'].energy_absorption['coeffs'], m['west'].energy_absorption['center_freqs'])
     x2 = instance.resample(m['east'].energy_absorption['coeffs'], m['east'].energy_absorption['center_freqs'])
@@ -47,7 +47,7 @@ def example():
     plt.ylim(-1, 1)
 
     # Original tap, frequency domain
-    w, h = signal.freqz(instance.tap, worN=64)
+    w, h = signal.freqz(instance.tap, worN=128)
     amplitude = 20 * np.log10(abs(h))
     angle = np.angle(h)
     ax1 = plt.subplot(2, 2, 2)
@@ -64,7 +64,7 @@ def example():
     plt.ylim(-1, 1)
 
     # Compensated tap, frequency domain
-    w, h = signal.freqz(instance.removeDirectSound() * instance.computeEngeryScale(), worN=64)
+    w, h = signal.freqz(instance.removeDirectSound() * instance.computeEngeryScale(), worN=128)
     amplitude = 20 * np.log10(abs(h))
     angle = np.angle(h)
     ax1 = plt.subplot(2, 2, 4)
@@ -76,6 +76,9 @@ def example():
     ax2.set_ylim(-np.pi, np.pi)
 
     plt.show()
+
+    np.savetxt('impedance_2.dat', [instance.removeDirectSound() * instance.computeEngeryScale()], delimiter=',\n', fmt='%.24f')
+
 
 
 if __name__ == "__main__":
