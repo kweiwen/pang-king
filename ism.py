@@ -213,22 +213,21 @@ class ISM:
         self.x = xyz[0]
         self.y = xyz[1]
         self.z = xyz[2]
-        self.volume = self.x * self.y * self.z
-        self.surface = 2 * (self.x * self.y + self.x * self.z + self.y * self.z)
-        self.dimension = np.array([self.x, self.y, self.z])
         self.l = np.array([self.x, self.y, self.z]) / self.cTs
+        self.volume = self.x * self.y * self.z
+        self.surface_area = 2 * (self.x * self.y + self.x * self.z + self.y * self.z)
 
     def add_receiver(self, xyz):
         # position in meter
-        self.mircophone = np.array([xyz[0], xyz[1], xyz[2]])
+        self.receiver = np.array([xyz[0], xyz[1], xyz[2]])
         # position in sample
-        self.r = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
+        self.rx = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
     def add_transmitter(self, xyz):
         # position in meter
-        self.source = np.array([xyz[0], xyz[1], xyz[2]])
+        self.transmitter = np.array([xyz[0], xyz[1], xyz[2]])
         # position in sample
-        self.s = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
+        self.tx = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
     def create_material_by_coefficient(self, x1, x2, y1, y2, z1, z2, is_vanilla):
         if is_vanilla:
@@ -262,7 +261,7 @@ class ISM:
 
     def create_material_by_time(self, reverberation_time):
         if (reverberation_time != 0):
-            alpha = 24 * np.log(10.0) * self.volume / (self.velocity * self.surface * reverberation_time)
+            alpha = 24 * np.log(10.0) * self.volume / (self.velocity * self.surface_area * reverberation_time)
             beta = np.sqrt(1 - alpha)
             self.beta = np.full(6, beta * -1)
             return self.beta
@@ -286,20 +285,20 @@ class ISM:
                     Rm[2] = 2 * mz * self.l[2]
 
                     for q in range(2):
-                        Rp[0] = (1 - 2 * q) * self.s[0] - self.r[0]
-                        ISM_X = Rm[0] + (1 - 2 * q) * self.s[0]
+                        Rp[0] = (1 - 2 * q) * self.tx[0] - self.rx[0]
+                        ISM_X = Rm[0] + (1 - 2 * q) * self.tx[0]
                         beta_x1 = np.power(self.beta[0], np.abs(mx - q))
                         beta_x2 = np.power(self.beta[1], np.abs(mx))
 
                         for j in range(2):
-                            Rp[1] = (1 - 2 * j) * self.s[1] - self.r[1]
-                            ISM_Y = Rm[1] + (1 - 2 * j) * self.s[1]
+                            Rp[1] = (1 - 2 * j) * self.tx[1] - self.rx[1]
+                            ISM_Y = Rm[1] + (1 - 2 * j) * self.tx[1]
                             beta_y1 = np.power(self.beta[2], np.abs(my - j))
                             beta_y2 = np.power(self.beta[3], np.abs(my))
 
                             for k in range(2):
-                                Rp[2] = (1 - 2 * k) * self.s[2] - self.r[2]
-                                ISM_Z = Rm[2] + (1 - 2 * k) * self.s[2]
+                                Rp[2] = (1 - 2 * k) * self.tx[2] - self.rx[2]
+                                ISM_Z = Rm[2] + (1 - 2 * k) * self.tx[2]
                                 beta_z1 = np.power(self.beta[4], np.abs(mz - k))
                                 beta_z2 = np.power(self.beta[5], np.abs(mz))
 
@@ -355,7 +354,7 @@ class ISM:
 
     def remove_direct_sound(self):
         # direct sound in distance
-        ds_dist = np.sqrt(np.sum((self.source - self.mircophone) ** 2))
+        ds_dist = np.sqrt(np.sum((self.transmitter - self.receiver) ** 2))
 
         # direct sound in sample
         self.ds = ds_dist / self.cTs
