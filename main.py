@@ -9,9 +9,9 @@ def example(is_save):
     source_pos = [1, 1.5, 0.2]
 
     instance = ISM()
-    instance.defineSystem(48000, 343, 4096-512, 0.004)
-    instance.createMultiBands()
-    instance.createRoom(room_size)
+    instance.define_system(48000, 343, 4096 - 512, 0.004)
+    instance.create_multi_bands()
+    instance.create_room(room_size)
 
     # carpet_tufted_9.5mm
     # hard_surface
@@ -32,11 +32,11 @@ def example(is_save):
     z1 = instance.resample(m['floor'].energy_absorption['coeffs'], m['floor'].energy_absorption['center_freqs'])
     z2 = instance.resample(m['ceiling'].energy_absorption['coeffs'], m['ceiling'].energy_absorption['center_freqs'])
 
-    instance.createMaterialByCoefficient(x1, x2, y1, y2, z1, z2, False)
-    instance.addMicrophone(microphone_pos)
-    instance.addSource(source_pos)
-    instance.computeISM()
-    instance.computeRIR()
+    instance.create_material_by_coefficient(x1, x2, y1, y2, z1, z2, False)
+    instance.add_receiver(microphone_pos)
+    instance.add_transmitter(source_pos)
+    instance.compute_ism()
+    instance.compute_rir()
 
     # compensate the energy
     w, h = signal.freqz(instance.tap)
@@ -46,7 +46,7 @@ def example(is_save):
     plt.subplot(4, 1, 1)
     plt.plot(instance.tap)
     plt.subplot(4, 1, 2)
-    plt.plot(instance.removeDirectSound())
+    plt.plot(instance.remove_direct_sound())
     plt.subplot(4, 1, 3)
     plt.plot(w, 20 * np.log10(abs(h)))
     plt.subplot(4, 1, 4)

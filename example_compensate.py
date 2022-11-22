@@ -9,9 +9,9 @@ def example():
     source_pos = [1.2, 1.5, 1.2]
 
     instance = ISM()
-    instance.defineSystem(48000, 343, 2048-256, 0.008)
-    instance.createMultiBands()
-    instance.createRoom(room_size)
+    instance.define_system(48000, 343, 2048 - 256, 0.008)
+    instance.create_multi_bands()
+    instance.create_room(room_size)
 
     # carpet_tufted_9.5mm
     # hard_surface
@@ -32,19 +32,19 @@ def example():
     z1 = instance.resample(m['floor'].energy_absorption['coeffs'], m['floor'].energy_absorption['center_freqs'])
     z2 = instance.resample(m['ceiling'].energy_absorption['coeffs'], m['ceiling'].energy_absorption['center_freqs'])
 
-    instance.createMaterialByCoefficient(x1, x2, y1, y2, z1, z2, False)
-    instance.addMicrophone(microphone_pos)
-    instance.addSource(source_pos)
-    instance.computeISM()
-    instance.computeRIR()
+    instance.create_material_by_coefficient(x1, x2, y1, y2, z1, z2, False)
+    instance.add_receiver(microphone_pos)
+    instance.add_transmitter(source_pos)
+    instance.compute_ism()
+    instance.compute_rir()
 
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
     fig.suptitle('Original vs Compensated')
 
     # Original tap, time domain
     plt.subplot(2, 2, 1)
-    plt.plot(instance.tap)
-    plt.ylim(-1, 1)
+    plt.plot(instance.taps)
+    # plt.ylim(-1, 1)
 
     # Original tap, frequency domain
     w, h = signal.freqz(instance.tap, worN=128)
@@ -60,11 +60,11 @@ def example():
 
     # Compensated tap, time domain
     plt.subplot(2, 2, 3)
-    plt.plot(instance.removeDirectSound() * instance.computeEngeryScale())
-    plt.ylim(-1, 1)
+    plt.plot(instance.remove_direct_sound() * instance.compute_engery_scale())
+    # plt.ylim(-1, 1)
 
     # Compensated tap, frequency domain
-    w, h = signal.freqz(instance.removeDirectSound() * instance.computeEngeryScale(), worN=128)
+    w, h = signal.freqz(instance.remove_direct_sound() * instance.compute_engery_scale(), worN=128)
     amplitude = 20 * np.log10(abs(h))
     angle = np.angle(h)
     ax1 = plt.subplot(2, 2, 4)
@@ -77,7 +77,7 @@ def example():
 
     plt.show()
 
-    np.savetxt('impedance_1.dat', [instance.removeDirectSound() * instance.computeEngeryScale()], delimiter=',\n', fmt='%.24f')
+    np.savetxt('impedance_1.dat', [instance.remove_direct_sound() * instance.compute_engery_scale()], delimiter=',\n', fmt='%.24f')
 
 
 

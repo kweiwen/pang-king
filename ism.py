@@ -10,7 +10,7 @@ class ISM:
     def __init__(self):
         self.taps = None
 
-    def createMultiBands(self, base_frequency = 125, n_fft = 512):
+    def create_multi_bands(self, base_frequency = 125, n_fft = 512):
         self.base_freq = base_frequency
         self.n_fft = n_fft
 
@@ -188,7 +188,7 @@ class ISM:
         else:
             return output
 
-    def defineSystem(self, fs, velocity, sample, time = 0.004):
+    def define_system(self, fs, velocity, sample, time = 0.004):
         # sample rate
         self.fs = fs
         # air velocity
@@ -208,7 +208,7 @@ class ISM:
         # cluster to store each reflection by order
         self.cluster = defaultdict(list)
 
-    def createRoom(self, xyz):
+    def create_room(self, xyz):
         self.x = xyz[0]
         self.y = xyz[1]
         self.z = xyz[2]
@@ -217,19 +217,19 @@ class ISM:
         self.dimension = np.array([self.x, self.y, self.z])
         self.l = np.array([self.x, self.y, self.z]) / self.cTs
 
-    def addMicrophone(self, xyz):
+    def add_receiver(self, xyz):
         # position in meter
         self.mircophone = np.array([xyz[0], xyz[1], xyz[2]])
         # position in sample
         self.r = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
-    def addSource(self, xyz):
+    def add_transmitter(self, xyz):
         # position in meter
         self.source = np.array([xyz[0], xyz[1], xyz[2]])
         # position in sample
         self.s = np.array([xyz[0], xyz[1], xyz[2]]) / self.cTs
 
-    def createMaterialByCoefficient(self, x1, x2, y1, y2, z1, z2, is_vanilla):
+    def create_material_by_coefficient(self, x1, x2, y1, y2, z1, z2, is_vanilla):
         if is_vanilla:
             x1 = np.sqrt(1 - x1)
             x2 = np.sqrt(1 - x2)
@@ -259,14 +259,14 @@ class ISM:
         if (np.sum(alpha) > 0):
             self.reverberation = 24 * np.log(10.0) * self.volume / (self.velocity * alpha)
 
-    def createMaterialByTime(self, reverberation_time):
+    def create_material_by_time(self, reverberation_time):
         if (reverberation_time != 0):
             alpha = 24 * np.log(10.0) * self.volume / (self.velocity * self.surface * reverberation_time)
             beta = np.sqrt(1 - alpha)
             self.beta = np.full(6, beta * -1)
             return self.beta
 
-    def computeISM(self):
+    def compute_ism(self):
         n1 = int(np.ceil(self.nSamples / (2 * self.l[0])))
         n2 = int(np.ceil(self.nSamples / (2 * self.l[1])))
         n3 = int(np.ceil(self.nSamples / (2 * self.l[2])))
@@ -321,7 +321,7 @@ class ISM:
 
                                 self.cluster[order].append(temp)
 
-    def computeRIR(self):
+    def compute_rir(self):
         bws = self.get_bw()
         cluster_size = len(self.cluster)
         imp = np.zeros((self.nSamples, cluster_size))
@@ -352,7 +352,7 @@ class ISM:
         self.taps = imp
         self.tap = np.sum(self.taps[:, :], axis=1)
 
-    def removeDirectSound(self):
+    def remove_direct_sound(self):
         # direct sound in distance
         ds_dist = np.sqrt(np.sum((self.source - self.mircophone) ** 2))
 
@@ -367,7 +367,7 @@ class ISM:
         else:
             return self.tap
 
-    def computeEngeryScale(self):
+    def compute_engery_scale(self):
         # compensate the energy
         w, h = signal.freqz(self.tap, worN=128)
         return 1 / np.max(np.abs(h))
