@@ -8,7 +8,10 @@ import mpl_toolkits.mplot3d as a3
 class ISM:
 
     def __init__(self):
+        # 2D list to store each reflection
         self.taps = None
+        # cluster to store each reflection by order
+        self.cluster = defaultdict(list)
 
     def create_multi_bands(self, base_frequency = 125, n_fft = 512):
         self.base_freq = base_frequency
@@ -205,8 +208,6 @@ class ISM:
         self.hann_window = 0.5 * (1 + np.cos(np.linspace(-np.pi, np.pi, self.width)))
         # total sample
         self.nSamples = sample
-        # cluster to store each reflection by order
-        self.cluster = defaultdict(list)
 
     def create_room(self, xyz):
         self.x = xyz[0]
@@ -391,7 +392,6 @@ class ISM:
         XX = np.full((space, space), xx)
         YY = np.full((space, space), yy)
         ZZ = np.full((space, space), zz)
-
 
         ax.scatter(source[0], source[1], source[2], marker='o')
         ax.scatter(mic[0], mic[1], mic[2], marker='^')
