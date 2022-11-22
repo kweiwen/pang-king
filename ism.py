@@ -206,8 +206,8 @@ class ISM:
         self.cTs = velocity / fs
         # window function
         self.hann_window = 0.5 * (1 + np.cos(np.linspace(-np.pi, np.pi, self.width)))
-        # total sample
-        self.nSamples = sample
+        # total length of rir sample
+        self.n_samples = sample
 
     def create_room(self, xyz):
         self.x = xyz[0]
@@ -267,9 +267,9 @@ class ISM:
             return self.beta
 
     def compute_ism(self):
-        n1 = int(np.ceil(self.nSamples / (2 * self.l[0])))
-        n2 = int(np.ceil(self.nSamples / (2 * self.l[1])))
-        n3 = int(np.ceil(self.nSamples / (2 * self.l[2])))
+        n1 = int(np.ceil(self.n_samples / (2 * self.l[0])))
+        n2 = int(np.ceil(self.n_samples / (2 * self.l[1])))
+        n3 = int(np.ceil(self.n_samples / (2 * self.l[2])))
 
         Rm = np.zeros(3)
         Rp = np.zeros(3)
@@ -324,7 +324,7 @@ class ISM:
     def compute_rir(self):
         bws = self.get_bw()
         cluster_size = len(self.cluster)
-        imp = np.zeros((self.nSamples, cluster_size))
+        imp = np.zeros((self.n_samples, cluster_size))
         fc = 1
 
         for b, bw in enumerate(bws):
@@ -338,7 +338,7 @@ class ISM:
                     startPosition = self.cluster[order][index]['start']
                     endPosition = self.cluster[order][index]['end']
 
-                    if endPosition < self.nSamples:
+                    if endPosition < self.n_samples:
                         beta_sb = beta.T[b]
                         gain = beta_sb[0] * beta_sb[1] * beta_sb[2] * beta_sb[3] * beta_sb[4] * beta_sb[5] / (4 * np.pi * dist)
 
@@ -347,7 +347,7 @@ class ISM:
                         LPI = self.hann_window * fc * np.sinc(fc * t)
                         sub_band = self.analysis(gain * LPI, b)
                         for n in range(self.width):
-                            if startPosition + n >= 0 and startPosition + n < self.nSamples:
+                            if startPosition + n >= 0 and startPosition + n < self.n_samples:
                                 imp[startPosition + n][order] = imp[startPosition + n][order] + sub_band[n]
         self.taps = imp
         self.tap = np.sum(self.taps[:, :], axis=1)
@@ -362,6 +362,8 @@ class ISM:
         ds_start = math.ceil(self.ds - self.width_half)
         ds_end = math.floor(self.ds + self.width_half)
 
+
+        # add ds in order to extend nsample
         if ds_start > 0:
             return self.tap[ds_start - 1:]
         else:
