@@ -12,6 +12,8 @@ class ISM:
         self.taps = None
         # cluster to store each reflection by order
         self.cluster = defaultdict(list)
+        # boolean to remove direct sound
+        self.remove_delay = None
 
     def create_multi_bands(self, base_frequency = 125, n_fft = 512):
         self.base_freq = base_frequency
@@ -354,20 +356,15 @@ class ISM:
 
     def remove_direct_sound(self):
         # direct sound in distance
-        ds_dist = np.sqrt(np.sum((self.transmitter - self.receiver) ** 2))
-
+        dist_in_sample = np.sqrt(np.sum(np.power((self.transmitter - self.receiver), 2)))
         # direct sound in sample
-        self.ds = ds_dist / self.cTs
+        fdist_in_sample = np.floor(dist_in_sample)
 
-        ds_start = math.ceil(self.ds - self.width_half)
-        ds_end = math.floor(self.ds + self.width_half)
-
-
-        # add ds in order to extend nsample
-        if ds_start > 0:
-            return self.tap[ds_start - 1:]
-        else:
-            return self.tap
+        ds_start = int(fdist_in_sample - self.width_half)
+        ds_center = fdist_in_sample
+        ds_end = int(fdist_in_sample + self.width_half)
+        self.n_samples = self.n_samples + ds_start
+        self.remove_delay = True
 
     def compute_engery_scale(self):
         # compensate the energy
