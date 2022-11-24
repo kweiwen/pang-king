@@ -61,11 +61,11 @@ def example():
 
     # Compensated tap, time domain
     plt.subplot(2, 2, 3)
-    plt.plot(instance.tap)
+    plt.plot(instance.tap * instance.compute_engery_scale())
     # plt.ylim(-1, 1)
 
     # Compensated tap, frequency domain
-    w, h = signal.freqz(instance.tap, worN=128)
+    w, h = signal.freqz(instance.tap * instance.compute_engery_scale(), worN=128)
     amplitude = 20 * np.log10(abs(h))
     angle = np.angle(h)
     ax1 = plt.subplot(2, 2, 4)

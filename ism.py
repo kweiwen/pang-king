@@ -353,7 +353,7 @@ class ISM:
                                 imp[startPosition + n][order] = imp[startPosition + n][order] + sub_band[n]
 
         if self.remove_delay == True:
-            self.taps = imp[self.ds_center:,:]
+            self.taps = imp[self.ds_start:,:]
         else:
             self.taps = imp
         self.tap = np.sum(self.taps[:, :], axis=1)
@@ -364,10 +364,10 @@ class ISM:
         # direct sound in sample
         fdist_in_sample = int(np.floor(dist_in_sample))
 
-        ds_start = int(fdist_in_sample - self.width_half)
-        self.ds_center = fdist_in_sample
+        self.ds_start = int(fdist_in_sample - self.width_half)
+        ds_center = fdist_in_sample
         ds_end = int(fdist_in_sample + self.width_half)
-        self.n_samples = self.n_samples + self.ds_center
+        self.n_samples = self.n_samples + self.ds_start
         self.remove_delay = True
 
     def compute_engery_scale(self):
