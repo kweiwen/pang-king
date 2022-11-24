@@ -35,6 +35,7 @@ def example():
     instance.create_material_by_coefficient(x1, x2, y1, y2, z1, z2, False)
     instance.add_receiver(microphone_pos)
     instance.add_transmitter(source_pos)
+    instance.remove_direct_sound()
     instance.compute_ism()
     instance.compute_rir()
 
@@ -60,11 +61,11 @@ def example():
 
     # Compensated tap, time domain
     plt.subplot(2, 2, 3)
-    plt.plot(instance.remove_direct_sound() * instance.compute_engery_scale())
+    plt.plot(instance.tap)
     # plt.ylim(-1, 1)
 
     # Compensated tap, frequency domain
-    w, h = signal.freqz(instance.remove_direct_sound() * instance.compute_engery_scale(), worN=128)
+    w, h = signal.freqz(instance.tap, worN=128)
     amplitude = 20 * np.log10(abs(h))
     angle = np.angle(h)
     ax1 = plt.subplot(2, 2, 4)
@@ -77,7 +78,7 @@ def example():
 
     plt.show()
 
-    np.savetxt('impedance_1.dat', [instance.remove_direct_sound() * instance.compute_engery_scale()], delimiter=',\n', fmt='%.24f')
+    # np.savetxt('impedance_1.dat', [instance.tap * instance.compute_engery_scale()], delimiter=',\n', fmt='%.24f')
 
 
 

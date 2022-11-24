@@ -351,19 +351,23 @@ class ISM:
                         for n in range(self.width):
                             if startPosition + n >= 0 and startPosition + n < self.n_samples:
                                 imp[startPosition + n][order] = imp[startPosition + n][order] + sub_band[n]
-        self.taps = imp
+
+        if self.remove_delay == True:
+            self.taps = imp[self.ds_center:,:]
+        else:
+            self.taps = imp
         self.tap = np.sum(self.taps[:, :], axis=1)
 
     def remove_direct_sound(self):
         # direct sound in distance
-        dist_in_sample = np.sqrt(np.sum(np.power((self.transmitter - self.receiver), 2)))
+        dist_in_sample = np.sqrt(np.sum(np.power((self.transmitter - self.receiver), 2)))  / self.cTs
         # direct sound in sample
-        fdist_in_sample = np.floor(dist_in_sample)
+        fdist_in_sample = int(np.floor(dist_in_sample))
 
         ds_start = int(fdist_in_sample - self.width_half)
-        ds_center = fdist_in_sample
+        self.ds_center = fdist_in_sample
         ds_end = int(fdist_in_sample + self.width_half)
-        self.n_samples = self.n_samples + ds_start
+        self.n_samples = self.n_samples + self.ds_center
         self.remove_delay = True
 
     def compute_engery_scale(self):
