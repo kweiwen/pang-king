@@ -330,7 +330,7 @@ class ISM:
         fc = 1
 
         for b, bw in enumerate(bws):
-            print("current band: ", b)
+            # print("current band: ", b)
             for order in range(cluster_size):
                 for index, block in enumerate(self.cluster[order]):
                     dist_in_sample = self.cluster[order][index]['dist'] / self.cTs
@@ -340,7 +340,8 @@ class ISM:
                     startPosition = self.cluster[order][index]['start']
                     endPosition = self.cluster[order][index]['end']
 
-                    if endPosition < self.n_samples:
+                    # if endPosition < self.n_samples:
+                    if fdist_in_sample < self.n_samples:
                         beta_sb = beta.T[b]
                         gain = beta_sb[0] * beta_sb[1] * beta_sb[2] * beta_sb[3] * beta_sb[4] * beta_sb[5] / (4 * np.pi * dist)
 
@@ -356,6 +357,7 @@ class ISM:
             self.taps = imp[self.ds_start:,:]
         else:
             self.taps = imp
+
         self.tap = np.sum(self.taps[:, :], axis=1)
 
     def remove_direct_sound(self):
