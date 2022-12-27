@@ -19,21 +19,20 @@ def convert_all(input_data):
     output_data = ""
     for data in input_data:
         output_data += byte_to_string(float_to_byte_array_little(data))
-    # print(len(output_data))
-    # print(output_data)
     return output_data
 
-def example():
-    room_size       = [3.2, 6, 2.7]
-    microphone_pos  = [1.1, 3, 1.2]
-    source_pos      = [2, 3, 2]
-    sample_rate     = 48000
-    velocity        = 340
-    sample_length   = 2048
-    block_size      = 240
+def example(room_size, source_pos, microphone_pos, sample_rate, velocity, sample_length, block_size):
+    # room_size =         [5, 5, 2.2]
+    # source_pos =        [1, 1.5, 0.2]
+    # microphone_pos =    [4, 1.25, 1.2]
+    #
+    # sample_rate     = 48000
+    # velocity        = 340
+    # sample_length   = 2048
+    # block_size      = 240
 
     instance = ISM()
-    instance.define_system(sample_rate, velocity, sample_length, 0.0025)
+    instance.define_system(sample_rate, velocity, sample_length, 0.009)
     instance.create_multi_bands()
     instance.create_room(room_size)
 
@@ -42,12 +41,12 @@ def example():
     # reverb_chamber
 
     m = dict()
-    m["floor"] =    Material(energy_absorption="audience_orchestra_choir", scattering="rect_prism_boxes")
-    m["ceiling"] =  Material(energy_absorption="audience_orchestra_choir", scattering="rect_prism_boxes")
-    m["east"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["west"] =     Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["north"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
-    m["south"] =    Material(energy_absorption="hard_surface", scattering="rect_prism_boxes")
+    m["floor"] =    Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["ceiling"] =  Material(energy_absorption="carpet_tufted_9.5mm", scattering="rect_prism_boxes")
+    m["east"] =     Material(energy_absorption="audience_orchestra_choir", scattering="rect_prism_boxes")
+    m["west"] =     Material(energy_absorption="audience_orchestra_choir", scattering="rect_prism_boxes")
+    m["north"] =    Material(energy_absorption="audience_orchestra_choir", scattering="rect_prism_boxes")
+    m["south"] =    Material(energy_absorption="audience_orchestra_choir", scattering="rect_prism_boxes")
 
     x1 = instance.resample(m['west'].energy_absorption['coeffs'], m['west'].energy_absorption['center_freqs'])
     x2 = instance.resample(m['east'].energy_absorption['coeffs'], m['east'].energy_absorption['center_freqs'])
@@ -56,75 +55,74 @@ def example():
     z1 = instance.resample(m['floor'].energy_absorption['coeffs'], m['floor'].energy_absorption['center_freqs'])
     z2 = instance.resample(m['ceiling'].energy_absorption['coeffs'], m['ceiling'].energy_absorption['center_freqs'])
 
-    instance.create_material_by_coefficient(x1, x2, y1, y2, z1, z2, False)
+    instance.create_material_by_coefficient(x1, x2, y1, y2, z1, z2, True)
     instance.add_receiver(microphone_pos)
     instance.add_transmitter(source_pos)
     instance.remove_direct_sound()
     instance.compute_ism()
     instance.compute_rir()
 
-
     # maximum_length(M + N - 1) to store rir coefficient for circular convolution
     maximum_length = len(instance.tap[:sample_length + 1 - block_size])
     padding_length = block_size - 1
     padding = np.zeros(padding_length)
-    temp = np.concatenate((instance.tap[:maximum_length], padding)) * instance.compute_engery_scale()
 
-    A = np.zeros(2048 * 2)
+    refactor = np.sum(instance.taps[:, :], axis=1)
+
+    temp = np.concatenate((refactor[:maximum_length], padding)) * instance.compute_engery_scale()
+    A = []
 
     H = np.fft.fft(temp)
 
     for index, data in enumerate(H):
-        A[index*2    ] = data.real
-        A[index*2 + 1] = data.imag
+        A.append(data.real)
+        A.append(data.imag)
 
     result = convert_all(A)
     print(result)
     print(len(result))
 
-    np.savetxt('impedance_1.dat', [temp], delimiter=',\n', fmt='%.24f')
+    return temp
 
-def render_plot(instance):
-    fig, axs = plt.subplots(2, 2, constrained_layout=True)
-    fig.suptitle('Original vs Compensated')
-
-    # Original tap, time domain
-    plt.subplot(2, 2, 1)
-    plt.plot(instance.taps)
-    # plt.ylim(-1, 1)
-
-    # Original tap, frequency domain
-    w, h = signal.freqz(instance.tap, worN=128)
-    amplitude = 20 * np.log10(abs(h))
-    angle = np.angle(h)
-    ax1 = plt.subplot(2, 2, 2)
-    ax2 = ax1.twinx()
-    ax1.plot(w / max(w), amplitude, 'g')
-    ax1.set_ylim(-72, 24)
-    ax1.grid()
-    ax2.plot(w / max(w), angle, 'y--')
-    ax2.set_ylim(-np.pi, np.pi)
-
-    # Compensated tap, time domain
-    plt.subplot(2, 2, 3)
-    plt.plot(instance.tap * instance.compute_engery_scale())
-    # plt.ylim(-1, 1)
-
-    # Compensated tap, frequency domain
-    w, h = signal.freqz(instance.tap * instance.compute_engery_scale(), worN=128)
-    amplitude = 20 * np.log10(abs(h))
-    angle = np.angle(h)
-    ax1 = plt.subplot(2, 2, 4)
-    ax2 = ax1.twinx()
-    ax1.plot(w / max(w), amplitude, 'g')
-    ax1.set_ylim(-72, 24)
-    ax1.grid()
-    ax2.plot(w / max(w), angle, 'y--')
-    ax2.set_ylim(-np.pi, np.pi)
-
-    plt.show()
+    #
+    # np.savetxt('impedance_1.dat', [temp], delimiter=',\n', fmt='%.24f')
+    #
+    # plt.plot(temp)
+    # plt.show()
+    #
+    # w, h = signal.freqz(temp)
+    # amplitude = 20 * np.log10(abs(h))
+    # plt.plot(amplitude)
+    # plt.show()
 
 if __name__ == "__main__":
-    example()
+    L = example([15, 15, 2.2], [1.0, 2, 1.6], [4.5, 2.7, 1.2], 48000, 340, 2048, 256)
+    R = example([15, 15, 2.2], [1.0, 3, 1.6], [4.5, 2.3, 1.2], 48000, 340, 2048, 256)
+
+    plt.plot(R)
+    plt.show()
+
+    w, h = signal.freqz(R)
+    amplitude = 20 * np.log10(abs(h))
+    plt.plot(amplitude)
+    plt.show()
 
 
+# EROOMCONVOLUTION_PARAM_ID_EARLY_REFLECTION_TIME,    // 0x1667E304
+# int, 1 - 1024
+# EROOMCONVOLUTION_PARAM_ID_LATE_REFLECTION_TIME,     // 0x1667E305
+# int, 1 - 1024
+# EROOMCONVOLUTION_PARAM_ID_SPREAD,                   // 0x1667E306
+# float, 0.0 - 1.0
+# EROOMCONVOLUTION_PARAM_ID_COLOR,                    // 0x1667E307
+# float, 0.0 - 1.0
+# EROOMCONVOLUTION_PARAM_ID_DAMP,                     // 0x1667E308
+# float, 0.0 - 1.0
+# EROOMCONVOLUTION_PARAM_ID_DECAY,                    // 0x1667E309
+# float, 0.0 - 1.0
+# EROOMCONVOLUTION_PARAM_ID_DIRECT,                   // 0x1667E30A
+# float, 0.0 - 1.0
+# EROOMCONVOLUTION_PARAM_ID_EARLY_REFLECTION,         // 0x1667E30B
+# float, 0.0 - 1.0
+# EROOMCONVOLUTION_PARAM_ID_LATE_REFLECTION,          // 0x1667E30C
+# float, 0.0 - 1.0
