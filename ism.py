@@ -199,6 +199,7 @@ class ISM:
         # air velocity
         self.velocity = velocity
         # dirac function width, odd sample
+        # TODO: self.width = int(2 * time + 1) you should verified this some time!!
         self.width = int(2 * np.round(time * fs) + 1)
         # half of dirac function width, even sample
         self.width_half = int(np.round(time * fs))
