@@ -43,12 +43,12 @@ def _EnergyDecayRelief(dataSet, iteration, N):
         dataSet[i] *= winfunc
         fftSet[:, i] = np.fft.fft(dataSet[i], N)
 
-    B_Amp = np.abs(fftSet) / N * 2
-    B_AmpSum = np.zeros([int(N / 2) + 1, iteration])
+    B_energy = (np.abs(fftSet) / N * 2)**2
+    B_EDR = np.zeros([int(N / 2) + 1, iteration])
 
-    for i in range(np.size(B_AmpSum, 0)):
-        B_AmpSum[i, :] = _Integral(B_Amp[i, :])
-    B_EDR = B_AmpSum ** 2
+    for i in range(np.size(B_EDR, 0)):
+        B_EDR[i, :] = _Integral(B_energy[i, :])
+
     return B_EDR
 
 # calculate EDC
