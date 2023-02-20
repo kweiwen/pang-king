@@ -38,17 +38,30 @@ def generate(fs: int, temp: float, d: numpy.ndarray, tx: numpy.ndarray, rx: nump
     room.add_microphone(loc=rx)
     room.compute_rir()
 
-    print("===Input Vector DATA==")
-    print(fs)
-    print(d)
-    print(tx)
-    print(rx)
-    print(order)
-    print(total_images_size(order))
+    image_size = total_images_size(order)
+
     images = room.sources[0].images
-    print(get_max_dist(images, rx, room.c, fs))
+    max_dist = get_max_dist(images, rx, room.c, fs) + 81
 
-    plt.plot(room.rir[0][0])
-    plt.show()
+    input_vector = [fs, d, tx, rx, order, image_size, max_dist]
+    transform = np.fft.fft(room.rir[0][0])
 
-generate(48000, 25, np.array([10, 10, 10]), np.array([1, 5, 1]), np.array([4, 2, 3.7]), 3, np.array([0.2, 0.1, 0.21, 0.31, 0.21, 0.11]))
+    print(max_dist)
+
+    print(len(transform.real))
+    print(len(transform.imag))
+
+    return input_vector, transform
+
+
+input_vector, transform = generate(48000, 25, np.array([10, 10, 10]), np.array([1, 5, 1]), np.array([4, 2, 3.7]), 3, np.array([0.2, 0.1, 0.21, 0.31, 0.21, 0.11]))
+# data = {'input_vector':input_vector, 'output_vector':[transform.real, transform.imag]}
+# np.save("d1.npy", data)
+
+# data = np.load('d1.npy', allow_pickle=True)
+
+# print(data)
+
+
+
+
