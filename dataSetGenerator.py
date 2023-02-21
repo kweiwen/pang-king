@@ -63,5 +63,9 @@ input_vector, transform = generate(48000, 25, np.array([10, 10, 10]), np.array([
 # print(data)
 
 
+# import itertools
+# a = [[1,2,3],[4,5,6],[7,8,9,10]]
+# list(itertools.product(*a))
+
 
 
