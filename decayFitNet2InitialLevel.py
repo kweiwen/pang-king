@@ -54,10 +54,10 @@ def octaveFiltering(inputSignal, fs, fBands):
             thisBand = fBands[bIdx] * np.array([1/np.sqrt(2), np.sqrt(2)])
             z, p, k = butter(5, thisBand/fs*2, btype='bandpass', output='zpk')
 
-        print('bIdx: ', bIdx)
-        print('z   : ', z)
-        print('p   : ', p)
-        print('k   : ', k)
+        # print('bIdx: ', bIdx)
+        # print('z   : ', z)
+        # print('p   : ', p)
+        # print('k   : ', k)
         # Zero phase filtering
         sos = zpk2sos(z, p, k)
         outBands[:, bIdx] = sosfilt(sos, inputSignal)
@@ -71,7 +71,7 @@ def decayFitNet2InitialLevel(T, A, N, normalization, fs, rirLen, fBands):
     impulse = np.zeros(fs + 1)
     impulse[0] = 1
     rirFBands = octaveFiltering(impulse, fs, fBands)
-    bandEnergy = np.sum(rirFBands * rirFBands, 1)
+    bandEnergy = np.sum(rirFBands * rirFBands, 0)
 
     gainPerSample = db2mag(RT602slope(T, fs))
     decayEnergy = 1 / (1 - gainPerSample ** 2)
@@ -83,20 +83,25 @@ def decayFitNet2InitialLevel(T, A, N, normalization, fs, rirLen, fBands):
 
 if __name__ == "__main__":
     fs = 48000
-    # impulse = np.zeros(fs+1)
+    fBands = [0, 500, 1000, 2000, 4000, 8000, 16000, fs/2]
+    rirLen = fs
+
     impulse = np.random.ranf(fs + 1)
-    fbands = [0, 500, 1000, 2000, 4000, 8000, 16000, fs/2]
-    RIRs = octaveFiltering(impulse, fs, fbands).T
+    # impulse = np.zeros(fs+1)
+    # RIRs = octaveFiltering(impulse, fs, fBands).T
+    #
+    # for RIR in RIRs:
+    #     magnitude = np.abs(np.fft.rfft(RIR))
+    #     fn = np.log10(magnitude/len(RIR)) * 20
+    #     plt.plot(fn)
+    # plt.show()
 
-    for RIR in RIRs:
-        magnitude = np.abs(np.fft.rfft(RIR))
-        fn = np.log10(magnitude/len(RIR)) * 20
-        plt.plot(fn)
-    plt.show()
+    normalization = np.random.ranf(8)
+    T = np.random.ranf(8)
+    A = np.random.ranf(8)
+    N = np.random.ranf(8)
+    level, A_norm, N_norm = decayFitNet2InitialLevel(T, A, N, normalization, fs, rirLen, fBands)
 
-
-
-
-
-
-
+    # print(level)
+    # print(A_norm)
+    # print(N_norm)
