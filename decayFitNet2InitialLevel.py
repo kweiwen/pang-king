@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-from scipy.signal import butter, sosfilt, zpk2sos
+from scipy.signal import butter, sosfilt, zpk2sos, freqz
 import matplotlib.pyplot as plt
 def db2mag(input_data):
     return 10**(input_data/20.0)
@@ -124,6 +124,27 @@ def bandpassFilter(omegaC, gain, Q):
     a[2] = np.sqrt(gain) - t
 
     return b, a
+
+
+def probeSOS(SOS, controlFrequencies, fftLen, fs):
+    numFreq = SOS.shape[0]
+
+    H = np.zeros((fftLen, numFreq))
+    W = np.zeros((fftLen, numFreq))
+    G = np.zeros((len(controlFrequencies), numFreq))
+
+    for band in range(numFreq):
+        b = SOS[band, 0:3]
+        a = SOS[band, 3:6]
+
+        w, h = freqz(b, a, fftLen, fs)
+        g = np.interp(controlFrequencies, w, 20 * np.log10(np.abs(h)))
+
+        G[:, band] = g
+        H[:, band] = h
+        W[:, band] = w
+
+    return G, H, W
 
 
 if __name__ == "__main__":
