@@ -1,7 +1,8 @@
 import numpy as np
 import sys
 from scipy.signal import butter, sosfilt, zpk2sos, freqz
-import matplotlib.pyplot as plt
+from scipy.optimize import lsq_linear
+
 def db2mag(input_data):
     return 10**(input_data/20.0)
 
@@ -63,8 +64,8 @@ def graphicEQ(centerOmega, shelvingOmega, R, gaindB):
 
     for band in range(numFreq):
         if band == 0:
-            b = [1, 0, 0] * db2mag(gaindB[band])
-            a = [1, 0, 0]
+            b = np.multiply(np.array([1, 0, 0]), db2mag(gaindB[band]))
+            a = np.array([1, 0, 0])
         elif band == 1:
             b, a = shelvingFilter(shelvingOmega[0], db2mag(gaindB[band]), 'low')
         elif band == numFreq - 1:
@@ -77,7 +78,6 @@ def graphicEQ(centerOmega, shelvingOmega, R, gaindB):
 
         SOS[band, :] = sos
     return SOS
-
 
 def shelvingFilter(omegaC, gain, Q):
     b = np.zeros(3)
@@ -107,7 +107,6 @@ def shelvingFilter(omegaC, gain, Q):
 
     return b, a
 
-
 def bandpassFilter(omegaC, gain, Q):
     b = np.zeros(3)
     a = np.zeros(3)
@@ -125,11 +124,10 @@ def bandpassFilter(omegaC, gain, Q):
 
     return b, a
 
-
 def probeSOS(SOS, controlFrequencies, fftLen, fs):
     numFreq = SOS.shape[0]
 
-    H = np.zeros((fftLen, numFreq))
+    H = np.zeros((fftLen, numFreq), dtype=np.complex_)
     W = np.zeros((fftLen, numFreq))
     G = np.zeros((len(controlFrequencies), numFreq))
 
@@ -146,8 +144,52 @@ def probeSOS(SOS, controlFrequencies, fftLen, fs):
 
     return G, H, W
 
+def hertz2rad(freq, fs):
+    return 2 * np.pi * np.array(freq) / fs
 
-if __name__ == "__main__":
+def designGEQ(targetG: np.array):
+    fs = 48000
+    fftLen = 2**16
+
+    centerFrequencies = [63, 125, 250, 500, 1000, 2000, 4000, 8000]  # Hz
+    ShelvingCrossover = [46, 11360]  # Hz
+    numFreq = len(centerFrequencies) + len(ShelvingCrossover)
+    shelvingOmega = hertz2rad(ShelvingCrossover, fs)
+    centerOmega = hertz2rad(centerFrequencies, fs)
+    R = 2.7
+
+    # control frequencies are spaced logarithmically
+    numControl = 100
+    controlFrequencies = np.round(np.logspace(np.log10(1), np.log10(fs/2.1), numControl+1))
+
+    # target magnitude response via command gains
+    targetF = [1] + centerFrequencies + [fs]
+    targetInterp = np.interp(controlFrequencies, targetF, targetG)
+
+    # design prototype of the biquad sections
+    prototypeGain = 10  # dB
+    prototypeGainArray = prototypeGain * np.ones(numFreq+1)
+    prototypeSOS = graphicEQ(centerOmega, shelvingOmega, R, prototypeGainArray)
+    G, prototypeH, prototypeW = probeSOS(prototypeSOS, controlFrequencies, fftLen, fs)
+    G = G / prototypeGain  # dB vs control frequencies
+
+    # compute optimal parametric EQ gains
+    # Either you can use a unconstrained linear solver or introduce gain bounds
+    # at [-20dB,+20dB] with acceptable deviation from the self-similarity
+    # property. The plot shows the deviation between design curve and actual
+    # curve.
+    upperBound = np.append(np.inf, 2 * prototypeGain * np.ones(numFreq))
+    lowerBound = upperBound * -1
+
+    # matlab code
+    # x    =    lsqlin(C, d, A, b, Aeq, beq, lb, ub, x0, options)
+    # optG =    lsqlin(G, targetInterp, [], [], [], [], lowerBound, upperBound, [], opts)
+
+    optG = lsq_linear(G, targetInterp, bounds=(lowerBound, upperBound), method='bvls').x
+    sos = graphicEQ(centerOmega, shelvingOmega, R, optG)
+    return sos, targetF
+
+def demo_decayFitNet2InitialLevel():
     fs = 48000
     fBands = [0, 500, 1000, 2000, 4000, 8000, 16000, fs/2]
     rirLen = fs
@@ -171,3 +213,7 @@ if __name__ == "__main__":
     # print(level)
     # print(A_norm)
     # print(N_norm)
+
+
+if __name__ == "__main__":
+    designGEQ([0.99, 0.9, 0.9, 0.9, 0.99, 0.9, 0.9, 0.9, 0.85, 0.75])
