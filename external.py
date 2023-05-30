@@ -79,7 +79,7 @@ def graphicEQ(centerOmega, shelvingOmega, R, gaindB):
         SOS[band, :] = sos
     return SOS
 
-def shelvingFilter(omegaC, gain, Q):
+def shelvingFilter(omegaC, gain, type):
     b = np.zeros(3)
     a = np.zeros(3)
 
@@ -135,7 +135,7 @@ def probeSOS(SOS, controlFrequencies, fftLen, fs):
         b = SOS[band, 0:3]
         a = SOS[band, 3:6]
 
-        w, h = freqz(b, a, fftLen, fs)
+        w, h = freqz(b, a, worN=fftLen, fs=fs)
         g = np.interp(controlFrequencies, w, 20 * np.log10(np.abs(h)))
 
         G[:, band] = g
