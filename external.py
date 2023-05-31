@@ -226,7 +226,8 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
     sos, _ = designGEQ(targetLevel)
     output_data[-1] = sos
 
-    return output_data
+    # return output_data
+    return sos[0, 0]
 
 
 def demo_decayFitNet2InitialLevel():
@@ -240,26 +241,18 @@ def demo_decayFitNet2InitialLevel():
     N = np.random.ranf(8)
     level, A_norm, N_norm = decayFitNet2InitialLevel(T, A, N, normalization, fs, rirLen, fBands)
 
-    print(level)
-    print(A_norm)
-    print(N_norm)
+    print(level, A_norm, N_norm)
 
 def demo():
     fp = "C:\Python37\Lib\DecayFitNet\data\exampleRIRs\singleslope_0001_1_sh_rirs.wav"
     file = wavio.read(fp)
     data = file.data[:, 0] / (2 ** (file.sampwidth * 8 - 1) - 1)
-    print(data)
-
-if __name__ == "__main__":
-
-    fp = "C:\Python37\Lib\DecayFitNet\data\exampleRIRs\singleslope_0001_1_sh_rirs.wav"
-    file = wavio.read(fp)
-    data = file.data[:, 0] / (2 ** (file.sampwidth * 8 - 1) - 1)
     delayLines = np.array([1021, 2029, 3001, 4093])
     BiquadFilterCoeff = RIR2AbsCoefLvlCoef(data, delayLines, file.rate)
-    print(BiquadFilterCoeff)
 
-    # designGEQ([0.99, 0.9, 0.9, 0.9, 0.99, 0.9, 0.9, 0.9, 0.85, 0.75])
+    return BiquadFilterCoeff
 
+if __name__ == "__main__":
+    print(demo())
 
 
