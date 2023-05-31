@@ -3,6 +3,9 @@ import sys
 from scipy.signal import butter, sosfilt, zpk2sos, freqz
 from scipy.optimize import lsq_linear
 
+def mag2db(input_data):
+    return 20*np.log10(input_data)
+
 def db2mag(input_data):
     return 10**(input_data/20.0)
 
@@ -189,6 +192,47 @@ def designGEQ(targetG: np.array):
     sos = graphicEQ(centerOmega, shelvingOmega, R, optG)
     return sos, targetF
 
+
+def RIR2FilterCoeff(fp, DelayLine, fs):
+    # Load RIR file
+    rir = []
+    for line in fp:
+        line = line.strip('\n')
+        rir.append(line.split(' '))
+    fp.close()
+    rir = np.array(rir, dtype=float)
+
+    N = 4
+    n_slopes = 1
+    filter_frequencies = [63, 125, 250, 500, 1000, 2000, 4000, 8000]
+
+    # Prepare the model
+    IRnet = DecayFitNetToolbox(n_slopes=n_slopes, sample_rate=fs, filter_frequencies=filter_frequencies)
+    est_parameters_net, norm_vals_net = IRnet.estimate_parameters(rir, analyse_full_rir=True)
+    est_T = est_parameters_net[0].T
+    est_A = est_parameters_net[1].T
+    est_N = est_parameters_net[2].T
+    est_L, est_A, est_N = decayFitNet2InitialLevel(est_T, est_A, est_N, norm_vals_net, fs, rir.shape[0], filter_frequencies)
+
+    targetT60 = np.hstack((est_T[0, 0], est_T[0], est_T[0, -1]))
+    targetT60 = np.multiply(targetT60, np.array([0.9, 1, 1, 1, 1, 1, 1, 1, 0.9, 0.5]))
+
+    # Convert T60 to magnitude response
+    targetG = RT602slope(targetT60, fs)
+
+    BiquadFilterCoeff = np.ones((5 * 5 * 11, 1))
+
+    for i in range(N):
+        BiquadFilterCoeff[11 * 5 * i:11 * 5 * (i + 1), :] = designGEQ(DelayLine[i] * targetG)
+
+    estLevel = np.hstack((est_L[0, 0], est_L[0], est_L[0, -1]))
+    targetLevel = mag2db(estLevel)
+    targetLevel = targetLevel - np.array([5, 0, 0, 0, 0, 0, 0, 0, 5, 30])
+    BiquadFilterCoeff[11 * 5 * N:11 * 5 * (N + 1), :] = designGEQ(targetLevel)
+
+    return BiquadFilterCoeff
+
+
 def demo_decayFitNet2InitialLevel():
     fs = 48000
     fBands = [0, 500, 1000, 2000, 4000, 8000, 16000, fs/2]
@@ -213,7 +257,6 @@ def demo_decayFitNet2InitialLevel():
     # print(level)
     # print(A_norm)
     # print(N_norm)
-
 
 if __name__ == "__main__":
     designGEQ([0.99, 0.9, 0.9, 0.9, 0.99, 0.9, 0.9, 0.9, 0.85, 0.75])
