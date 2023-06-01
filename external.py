@@ -4,6 +4,7 @@ import wavio
 from scipy.signal import butter, sosfilt, zpk2sos, freqz
 from scipy.optimize import lsq_linear
 from DecayFitNet.python.toolbox.DecayFitNetToolbox import DecayFitNetToolbox
+import matplotlib.pyplot as plt
 
 def mag2db(input_data):
     return 20*np.log10(input_data)
@@ -226,9 +227,20 @@ def RIR2AbsCoefLvlCoef(data, delayLines, fs):
     sos, _ = designGEQ(targetLevel)
     output_data[-1] = sos
 
-    # return output_data
-    return sos[0, 0]
+    return output_data
 
+def RIR2FDN(fp, ch1, ch2, ch3, ch4):
+    file = wavio.read(fp)
+    data = file.data[:, 0] / (2 ** (file.sampwidth * 8 - 1) - 1)
+    delayLines = np.array([ch1, ch2, ch3, ch4])
+    output_data = RIR2AbsCoefLvlCoef(data, delayLines, file.rate)
+
+    return output_data.tolist()
+
+def demo_RIR2FDN():
+    fp = "C:\Python37\Lib\DecayFitNet\data\exampleRIRs\singleslope_0001_1_sh_rirs.wav"
+    output_data = RIR2FDN(fp, 1021, 2029, 3001, 4093)
+    return np.array(output_data)
 
 def demo_decayFitNet2InitialLevel():
     fs = 48000
@@ -243,16 +255,16 @@ def demo_decayFitNet2InitialLevel():
 
     print(level, A_norm, N_norm)
 
-def demo():
-    fp = "C:\Python37\Lib\DecayFitNet\data\exampleRIRs\singleslope_0001_1_sh_rirs.wav"
-    file = wavio.read(fp)
-    data = file.data[:, 0] / (2 ** (file.sampwidth * 8 - 1) - 1)
-    delayLines = np.array([1021, 2029, 3001, 4093])
-    BiquadFilterCoeff = RIR2AbsCoefLvlCoef(data, delayLines, file.rate)
-
-    return BiquadFilterCoeff
-
 if __name__ == "__main__":
-    print(demo())
+    coefficients = demo_RIR2FDN()
+    for index, coefficient in enumerate(coefficients[4]):
+        b = coefficient[:3]
+        a = coefficient[3:]
+        w, h = freqz(b, a, worN=2**16, fs=48000)
+        amplitude = mag2db(np.abs(h))
+        plt.plot(amplitude, label="band" + str(index))
 
-
+    # plt.ylim(-5, 5)
+    plt.xscale('log')
+    plt.legend(loc="lower right")
+    plt.show()
