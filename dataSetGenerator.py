@@ -105,3 +105,9 @@ for index, combination in enumerate(combinations):
         break
 
 
+# class DSmanager:
+#     def __init__(self):
+#         print(123123)
+#
+#
+# a = DSmanager()
