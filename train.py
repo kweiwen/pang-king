@@ -1,5 +1,5 @@
 from torch.utils.data import DataLoader
-from torch.nn.utils.rnn import pad_sequence
+import torch
 import torch.optim as optim
 import numpy as np
 from model import *
@@ -38,7 +38,7 @@ sequences_data = [x['transform_list'] for x in loaded_results]
 lengths_data = np.array([len(sequence) for sequence in sequences_data])
 
 dataset = ISMdataSet(inputs_data, materials_vector, sequences_data, lengths_data)
-dataloader = DataLoader(dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
+dataloader = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=collate_fn)
 
 # init model and optimizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,7 +56,7 @@ def train(model, dataloader, optimizer, epochs=32):
 
             optimizer.zero_grad()
 
-            predicted_lengths, vector_outs = model(inputs)
+            predicted_lengths, vector_outs = model(inputs, materials)
 
             # # 假設您希望vector_outs與某個目標（如sequences）的某種形式匹配，這裡我只是做了一個示例。
             # # 您需要根據實際需求調整這一部分
@@ -71,10 +71,13 @@ def train(model, dataloader, optimizer, epochs=32):
             optimizer.step()
 
             total_loss += loss.item()
-        print(predicted_lengths, lengths.float(), vector_outs.shape)
+        print(predicted_lengths, lengths.float(), len(vector_outs), len(vector_outs[0]), len(vector_outs[1]), len(vector_outs[2]))
         print(f"Epoch {epoch + 1}, Loss: {total_loss / len(dataloader)}")
 
 # 執行訓練
 train(model, dataloader, optimizer)
-# bs = 64
-# Epoch 32, Loss: 0.0668732766633184 bs = 8
+# bs 16 0.06
+# bs 64 0.07
+# bs 8 0.058
+# Epoch 32, Loss: 0.480, bs = 64, lr = 0.001
+# Epoch 32, Loss: 0.066, bs = 8, lr = 0.001

@@ -1,29 +1,41 @@
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class CustomModel(nn.Module):
-    def __init__(self, input_features=14, material=36, hidden_dim=256):
+    def __init__(self, input_features=14, material_features=36, hidden_dim=256):
         super(CustomModel, self).__init__()
 
         # Transformer Part
-        encoder_layers = nn.TransformerEncoderLayer(d_model=input_features, nhead=2)
+        encoder_layers = nn.TransformerEncoderLayer(d_model=input_features, nhead=1)
         self.transformer = nn.TransformerEncoder(encoder_layers, num_layers=2)
+        self.fc1 = nn.Linear(input_features, input_features)
+        self.fc2 = nn.Linear(input_features, 1)
 
-        self.length_predictor = nn.Linear(input_features, 1)  # Predict length as an int
+        # Regression Part
+        self.fc3 = nn.Linear(input_features + material_features + 1, hidden_dim)  # +1 for size_out[t]
+        self.fc4 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc5 = nn.Linear(hidden_dim, 1)
 
-        # Regressor Part
-        self.regressor = nn.Linear(1, hidden_dim)  # Adjusting input size
+    def forward(self, x, y):
+        x0 = self.transformer(x.unsqueeze(1))
+        x1 = self.fc1(x0.squeeze())
+        x2 = self.fc2(x1)
+        size_out = x2.squeeze()
 
-    def forward(self, x):
-        # Assuming x is of shape (batch_size, sequence_length, input_features)
-        x = x.unsqueeze(1)
-        transformer_out = self.transformer(x)
+        predict_vector = []
+        for t, size in enumerate(size_out.int()):
+            if size == 0:
+                predict_vector.append([])
+                continue
 
-        # We use the last element of the sequence for length prediction
-        predicted_length = self.length_predictor(transformer_out[:, -1]).squeeze()
+            reg_input = torch.cat([size.view(1), x[t], y[t]])
+            reg_out = F.relu(self.fc3(reg_input))
+            reg_out = F.relu(self.fc4(reg_out))
+            reg_value = self.fc5(reg_out)
 
-        # Generate vector based on predicted length
-        vector_out = self.regressor(predicted_length.unsqueeze(-1))
+            predict_vector.append([reg_value.item()] * int(size.item()))
 
-        return predicted_length, vector_out
+        return size_out, predict_vector
 
 
