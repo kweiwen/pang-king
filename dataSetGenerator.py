@@ -1,8 +1,8 @@
 import numpy
 import pyroomacoustics as pra
 import numpy as np
-import itertools
-import matplotlib.pyplot as plt
+
+DEBUG = True
 
 def total_images_size(n: int):
     return 1 + int(2 * n * (2 * n * n + 3 * n + 4) / 3)
@@ -44,70 +44,42 @@ def generate(fs: int, temp: float, d: numpy.ndarray, tx: numpy.ndarray, rx: nump
     images = room.sources[0].images
     max_dist = get_max_dist(images, rx, room.c, fs) + 81
 
-    input_vector = [fs, d, tx, rx, order, image_size, max_dist]
-    transform = np.fft.fft(room.rir[0][0])
+    # input_vector = [temp, fs, d.flatten(), tx.flatten(), rx.flatten(), order, image_size, materials.flatten(), max_dist]
+    input_vector = np.hstack([temp, fs, d.flatten(), tx.flatten(), rx.flatten(), max_dist, order, image_size])
+    materials = materials.flatten()
+    transform = room.rir[0][0]
 
-    print(max_dist)
+    return input_vector, materials, transform
 
-    print(len(transform.real))
-    print(len(transform.imag))
+results = []  # Create a list to store all results
+save_dir = "D:/zengkuiwen/Desktop/dataset"
+material_values = np.linspace(0.01, 0.99, 99)
+order_size = 10
 
-    return input_vector, transform
+for index in range(2048):
+    # m0 = [np.random.choice(material_values) for _ in range(6)]
+    # m1 = [np.random.choice(material_values) for _ in range(6)]
+    # m2 = [np.random.choice(material_values) for _ in range(6)]
+    # m3 = [np.random.choice(material_values) for _ in range(6)]
+    # m4 = [np.random.choice(material_values) for _ in range(6)]
+    # m5 = [np.random.choice(material_values) for _ in range(6)]
+    m = np.random.rand(6, 6)
 
+    size = np.random.rand(3) * 10
+    tx = np.random.rand(3) * size
+    rx = np.random.rand(3) * size
+    print(index)
 
-# input_vector, transform = generate(48000, 25, np.array([10, 10, 10]), np.array([1, 5, 1]), np.array([4, 2, 3.7]), 3, np.array([0.2, 0.1, 0.21, 0.31, 0.21, 0.11]))
-# data = {'input_vector':input_vector, 'output_vector':[transform.real, transform.imag]}
-# np.save("d1.npy", data)
+    for order in range(order_size):
+        input_vector, materials, transform = generate(48000, 25, size, tx, rx, int(order), m)
+        transform_list = transform.tolist()
 
-# data = np.load('d1.npy', allow_pickle=True)
+        result = {
+            "index": index,
+            "input_vector": input_vector,
+            "materials_vector": materials,
+            "transform_list": transform_list
+        }
+        results.append(result)
 
-# print(data)
-
-
-# import itertools
-# a = [[1,2,3],[4,5,6],[7,8,9,10]]
-# list(itertools.product(*a))
-
-
-size = [np.linspace(1, 10, 10)] * 3
-tx = [np.linspace(0, 10, 11)] * 3
-rx = [np.linspace(0, 10, 11)] * 3
-temperature = [np.linspace(0, 40, 41)]
-material = [np.linspace(0.01, 0.99, 99)] * 6
-walls = material * 6
-order = [np.linspace(1, 17, 17)]
-fs = [[8000, 16000, 32000, 44100, 48000, 96000, 192000]]
-
-args = size + tx + rx + walls + order + fs + temperature
-combinations = itertools.product(*args)
-
-for index, combination in enumerate(combinations):
-    size = np.array(combination[0:3])
-    tx = np.array(combination[3:6])
-    rx = np.array(combination[6:9])
-
-    m0 = np.array(combination[9:15])
-    m1 = np.array(combination[15:21])
-    m2 = np.array(combination[21:27])
-    m3 = np.array(combination[27:33])
-    m4 = np.array(combination[33:39])
-    m5 = np.array(combination[39:45])
-    m = np.array([m0,m1,m2,m3,m4,m5])
-
-    order = combination[45]
-    fs = combination[46]
-    temperature = combination[47]
-    print(index, size, tx, rx, order, fs, temperature)
-
-    input_vector, transform = generate(fs, temperature, size, tx, rx, int(order), m)
-
-    if index == 12:
-        break
-
-
-# class DSmanager:
-#     def __init__(self):
-#         print(123123)
-#
-#
-# a = DSmanager()
+np.save('results.npy', results)

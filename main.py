@@ -83,5 +83,3 @@ def decodePlotRIR():
 
 if __name__ == "__main__":
     example(True)
-
-
