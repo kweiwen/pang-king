@@ -42,10 +42,9 @@ def generate(fs: int, temp: float, d: numpy.ndarray, tx: numpy.ndarray, rx: nump
     image_size = total_images_size(order)
 
     images = room.sources[0].images
-    max_dist = get_max_dist(images, rx, room.c, fs) + 81
 
     # input_vector = [temp, fs, d.flatten(), tx.flatten(), rx.flatten(), order, image_size, materials.flatten(), max_dist]
-    input_vector = np.hstack([temp, fs, d.flatten(), tx.flatten(), rx.flatten(), max_dist, order, image_size])
+    input_vector = np.hstack([d.flatten(), tx.flatten(), rx.flatten(), order])
     materials = materials.flatten()
     transform = room.rir[0][0]
 
@@ -56,7 +55,7 @@ save_dir = "D:/zengkuiwen/Desktop/dataset"
 material_values = np.linspace(0.01, 0.99, 99)
 order_size = 10
 
-for index in range(2048):
+for index in range(4096):
     # m0 = [np.random.choice(material_values) for _ in range(6)]
     # m1 = [np.random.choice(material_values) for _ in range(6)]
     # m2 = [np.random.choice(material_values) for _ in range(6)]
