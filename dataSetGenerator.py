@@ -55,7 +55,7 @@ save_dir = "D:/zengkuiwen/Desktop/dataset"
 material_values = np.linspace(0.01, 0.99, 99)
 order_size = 10
 
-for index in range(4096):
+for index in range(8192):
     # m0 = [np.random.choice(material_values) for _ in range(6)]
     # m1 = [np.random.choice(material_values) for _ in range(6)]
     # m2 = [np.random.choice(material_values) for _ in range(6)]

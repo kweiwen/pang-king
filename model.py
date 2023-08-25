@@ -1,41 +1,43 @@
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class CustomModel(nn.Module):
-    def __init__(self, input_features=14, material_features=36, hidden_dim=256):
+    def __init__(self, input_features=10, material_features=36, hidden_dim=256, batch_size=16):
         super(CustomModel, self).__init__()
+        self.max_size = 32768
 
         # Transformer Part
-        encoder_layers = nn.TransformerEncoderLayer(d_model=input_features, nhead=1)
-        self.transformer = nn.TransformerEncoder(encoder_layers, num_layers=2)
-        self.fc1 = nn.Linear(input_features, input_features)
-        self.fc2 = nn.Linear(input_features, 1)
+        # encoder_layers = nn.TransformerEncoderLayer(d_model=input_features, nhead=1)
+        # self.transformer = nn.TransformerEncoder(encoder_layers, num_layers=1)
+        self.fc1 = nn.Linear(input_features, 128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, 32)
+        self.fc4 = nn.Linear(32, 1)
 
         # Regression Part
-        self.fc3 = nn.Linear(input_features + material_features + 1, hidden_dim)  # +1 for size_out[t]
-        self.fc4 = nn.Linear(hidden_dim, hidden_dim)
-        self.fc5 = nn.Linear(hidden_dim, 1)
+        self.fc5 = nn.Linear(64 + material_features, hidden_dim)
+        self.fc6 = nn.Linear(hidden_dim, self.max_size)
 
     def forward(self, x, y):
-        x0 = self.transformer(x.unsqueeze(1))
-        x1 = self.fc1(x0.squeeze())
-        x2 = self.fc2(x1)
-        size_out = x2.squeeze()
+        # x0 = torch.sigmoid(self.transformer(x.unsqueeze(1)))
+        x1 = torch.relu(self.fc1(x))
+        x2 = torch.relu(self.fc2(x1))
+        x3 = torch.relu(self.fc3(x2))
+        x4 = torch.relu(self.fc4(x3))
+        size_out = x4.squeeze()
 
-        predict_vector = []
-        for t, size in enumerate(size_out.int()):
-            if size == 0:
-                predict_vector.append([])
-                continue
+        noise = torch.rand(x.size(0), self.max_size) * 2 - 1  # Changing noise range to [-1,1]
 
-            reg_input = torch.cat([size.view(1), x[t], y[t]])
-            reg_out = F.relu(self.fc3(reg_input))
-            reg_out = F.relu(self.fc4(reg_out))
-            reg_value = self.fc5(reg_out)
+        feature = torch.cat((x2.squeeze(1), y), dim=1)
 
-            predict_vector.append([reg_value.item()] * int(size.item()))
+        # Use the sigmoid function to limit the mask values between [0,1]
+        mask = torch.tanh(self.fc6(torch.relu(self.fc5(feature))))
 
-        return size_out, predict_vector
+        # Multiply the mask with noise
+        masked_noise = mask * noise
 
+        return size_out, masked_noise
 
