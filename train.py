@@ -22,9 +22,11 @@ def length_loss(input, target):
     loss = torch.abs(target - input) / target
     return loss.mean()
 
-def sample_loss(input, target):
-    nn.MSELoss()
+def time_loss(input, target):
+    info = torch.finfo(torch.float32)
+    loss = torch.tanh(torch.abs(target - input) / (torch.abs(target) + info.tiny))
     return loss.mean()
+
 
 # data processor
 input_raw = [x['input_vector'] for x in loaded_results]
@@ -38,16 +40,15 @@ sequences_data = [x['transform_list'] for x in loaded_results]
 lengths_data = np.array([len(sequence) for sequence in sequences_data])
 
 dataset = ISMdataSet(inputs_data, materials_vector, sequences_data, lengths_data)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=collate_fn)
+dataloader = DataLoader(dataset, batch_size = 128, shuffle=True, collate_fn=collate_fn)
 
 # init model and optimizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = CustomModel().to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-criterion = nn.MSELoss()
 
 # train
-def train(model, dataloader, optimizer, epochs=32):
+def train(model, dataloader, optimizer, epochs = 128):
     model.train()
 
     for epoch in range(epochs):
@@ -60,15 +61,14 @@ def train(model, dataloader, optimizer, epochs=32):
             predicted_lengths, vector_outs = model(inputs, materials)
 
             loss1 = length_loss(predicted_lengths, lengths.float())
-            loss2 = criterion(vector_outs, sequences)
-            # loss = loss1 * 0.5 + loss2 * 0.5
+            loss2 = time_loss(vector_outs, sequences)
             loss = loss1 + loss2
 
             loss.backward()
             optimizer.step()
 
             total_loss += loss.item()
-        print(predicted_lengths, lengths.float())
+        print(loss1, loss2)
         print(f"Epoch {epoch + 1}, Loss: {total_loss / len(dataloader)}")
 
 # execute
