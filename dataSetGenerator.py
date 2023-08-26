@@ -44,11 +44,11 @@ def generate(fs: int, temp: float, d: numpy.ndarray, tx: numpy.ndarray, rx: nump
     images = room.sources[0].images
 
     # input_vector = [temp, fs, d.flatten(), tx.flatten(), rx.flatten(), order, image_size, materials.flatten(), max_dist]
-    input_vector = np.hstack([d.flatten(), tx.flatten(), rx.flatten(), order])
+    # input_vector = np.hstack([d.flatten(), tx.flatten(), rx.flatten(), order])
     materials = materials.flatten()
     transform = room.rir[0][0]
 
-    return input_vector, materials, transform
+    return d.flatten(), tx.flatten(), rx.flatten(), order, materials, transform
 
 results = []  # Create a list to store all results
 save_dir = "D:/zengkuiwen/Desktop/dataset"
@@ -70,12 +70,15 @@ for index in range(8192):
     print(index)
 
     for order in range(order_size):
-        input_vector, materials, transform = generate(48000, 25, size, tx, rx, int(order), m)
+        d, tx, rx, order, materials, transform = generate(48000, 25, size, tx, rx, int(order), m)
         transform_list = transform.tolist()
 
         result = {
             "index": index,
-            "input_vector": input_vector,
+            "d": d,
+            "tx": tx,
+            "rx": rx,
+            "order": order,
             "materials_vector": materials,
             "transform_list": transform_list
         }
