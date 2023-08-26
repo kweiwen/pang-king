@@ -11,10 +11,10 @@ class CustomModel(nn.Module):
         super(CustomModel, self).__init__()
         self.max_size = 32768
 
-        self.fc1 = nn.Linear(spatial_feature, 64)
-        self.fc2 = nn.Linear(64, 32)
-        self.fc3 = nn.Linear(32, 16)
-        self.fc4 = nn.Linear(16, 1)
+        self.fc1 = nn.Linear(spatial_feature, 256)
+        self.fc2 = nn.Linear(256, 128)
+        self.fc3 = nn.Linear(128, 64)
+        self.fc4 = nn.Linear(64, 1)
 
         # Regression Part
         self.fc5 = nn.Linear(spatial_feature + 1 + material_features, 256)
@@ -31,11 +31,11 @@ class CustomModel(nn.Module):
         n = order.int()
         images = 1 + (2 * n * (2 * n * n + 3 * n + 4) / 3)
 
-        x0 = torch.cat((dimension, tx, rx, order.unsqueeze(1), dist.unsqueeze(1), images.unsqueeze(1), dimension.prod(dim=1).unsqueeze(1)), dim=1)
+        x0 = torch.cat((dimension, tx, rx, dist.unsqueeze(1), order.unsqueeze(1), images.unsqueeze(1), dimension.prod(dim=1).unsqueeze(1)), dim=1)
         x1 = F.relu(self.fc1(x0))
         x2 = F.relu(self.fc2(x1))
         x3 = F.relu(self.fc3(x2))
-        x4 = self.fc4(x3)
+        x4 = F.relu(self.fc4(x3))
         size_out = x4.squeeze()
 
         # Concatenate size_out, x, and material for rir_seq prediction

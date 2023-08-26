@@ -6,8 +6,6 @@ from model import *
 from ISMdataSet import *
 from tqdm import tqdm
 
-loaded_results = np.load('results.npy', allow_pickle=True)
-
 def collate_fn(batch):
     dimension, tx, rx, order, materials, sequences, lengths = zip(*batch)
 
@@ -69,7 +67,7 @@ def masked_relative_error_loss(predict, target, predicted_lengths, epsilon=1e-8)
 
 
 # train
-def train(model, dataloader, optimizer, epochs=32):
+def train(model, dataloader, optimizer, epochs=16):
     model.train()
 
     for epoch in range(epochs):
@@ -106,37 +104,41 @@ def train(model, dataloader, optimizer, epochs=32):
 
             total_loss += loss.item()
             avg_loss = total_loss / (batch_idx + 1)
-            progress_bar.set_postfix(AverageLoss=avg_loss, Loss1=loss1.item())
+            progress_bar.set_postfix(AverageLoss=avg_loss, CurrentLoss1=loss1.item())
 
-
+# load data
+loaded_results = np.load('results.npy', allow_pickle=True)
+print("load data")
 
 # data processor
-d_raw = [x['d'] for x in loaded_results]
+d_raw, tx_raw, rx_raw, order_raw, materials_raw, sequences_data = [], [], [], [], [], []
+
+for x in loaded_results:
+    d_raw.append(x['d'])
+    tx_raw.append(x['tx'])
+    rx_raw.append(x['rx'])
+    order_raw.append(x['order'])
+    materials_raw.append(x['materials_vector'])
+    sequences_data.append(x['transform_list'])
+
 d_data = np.array(d_raw)
-
-tx_raw = [x['tx'] for x in loaded_results]
 tx_data = np.array(tx_raw)
-
-rx_raw = [x['rx'] for x in loaded_results]
 rx_data = np.array(rx_raw)
-
-order_raw = [x['order'] for x in loaded_results]
 order_data = np.array(order_raw)
-
-materials_raw = [x['materials_vector'] for x in loaded_results]
 materials_vector = np.array(materials_raw)
-
-sequences_data = [x['transform_list'] for x in loaded_results]
 lengths_data = np.array([len(sequence) for sequence in sequences_data])
+print("data processor")
 
 # init data set
 dataset = ISMdataSet(d_data, tx_data, rx_data, order_data, materials_vector, sequences_data, lengths_data)
-dataloader = DataLoader(dataset, batch_size=128, shuffle=True, collate_fn=collate_fn)
+dataloader = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=collate_fn)
+print("init data set")
 
 # init model and optimizer
 device = torch.device("mps" if torch.backends.mps.is_available() and torch.backends.mps.is_built() else "cpu")
 model = CustomModel().to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
+print("init model")
 
-# execute
+# execute training
 train(model, dataloader, optimizer)

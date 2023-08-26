@@ -53,7 +53,7 @@ def generate(fs: int, temp: float, d: numpy.ndarray, tx: numpy.ndarray, rx: nump
 results = []  # Create a list to store all results
 save_dir = "D:/zengkuiwen/Desktop/dataset"
 material_values = np.linspace(0.01, 0.99, 99)
-order_size = 10
+order_size = 15
 
 for index in range(8192):
     # m0 = [np.random.choice(material_values) for _ in range(6)]
